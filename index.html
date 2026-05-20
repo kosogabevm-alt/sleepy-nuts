@@ -387,6 +387,11 @@
     font-weight: 700;
     color: var(--moon);
   }
+  .timeline-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin-top: 0.25rem;
+  }
   .live-badge {
     display: flex;
     align-items: center;
@@ -410,16 +415,72 @@
     50% { opacity: 0.3; }
   }
 
-  .log-item {
-    display: flex;
-    gap: 1rem;
-    padding: 1rem;
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  .status-card {
     background: var(--night-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 0.75rem;
+    padding: 1rem;
     animation: slideIn 0.35s ease;
   }
+  .status-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    gap: 0.75rem;
+  }
+  .status-user {
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+  .status-chip {
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid transparent;
+    white-space: nowrap;
+  }
+  .status-chip.sleeping {
+    color: var(--moon);
+    background: rgba(143,168,232,0.15);
+    border-color: rgba(143,168,232,0.35);
+  }
+  .status-chip.awake {
+    color: var(--sun);
+    background: rgba(245,200,66,0.15);
+    border-color: rgba(245,200,66,0.35);
+  }
+  .status-chip.unknown {
+    color: var(--text-2);
+    background: rgba(143,168,200,0.12);
+    border-color: rgba(143,168,200,0.3);
+  }
+  .status-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .status-event {
+    font-size: 0.78rem;
+    color: var(--text-2);
+  }
+  .status-time {
+    font-family: 'Bebas Neue', sans-serif;
+    letter-spacing: 0.04em;
+    font-size: 1.4rem;
+    line-height: 1;
+    color: var(--text);
+  }
+  .status-card.sleeping .status-time { color: var(--moon); }
+  .status-card.awake .status-time { color: var(--sun); }
+  .status-card.unknown .status-time { color: var(--text-2); }
   @keyframes slideIn {
     from { opacity: 0; transform: translateY(-8px); }
     to { opacity: 1; transform: translateY(0); }
@@ -427,29 +488,6 @@
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-  .log-icon { font-size: 1.8rem; flex-shrink: 0; }
-  .log-body { flex: 1; }
-  .log-user { font-weight: 700; font-size: 0.95rem; }
-  .log-action { font-size: 0.85rem; color: var(--text-2); margin-top: 0.1rem; }
-  .log-time { font-size: 0.75rem; color: var(--text-2); }
-  .log-badge {
-    align-self: center;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.25rem 0.5rem;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-  .badge-success {
-    background: rgba(67,233,123,0.15);
-    color: var(--green);
-    border: 1px solid rgba(67,233,123,0.3);
-  }
-  .badge-late {
-    background: rgba(79,172,254,0.15);
-    color: var(--blue);
-    border: 1px solid rgba(79,172,254,0.3);
   }
   .empty-timeline {
     text-align: center;
@@ -500,6 +538,7 @@
 <body>
 
 <div id="app">
+  <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-logo">全力睡眠</div>
     <div class="auth-tagline">チームで作る最強の睡眠習慣</div>
@@ -538,6 +577,7 @@
     </div>
   </div>
 
+  <!-- MAIN APP -->
   <div id="main-screen">
     <div class="header">
       <div class="header-logo">全力睡眠</div>
@@ -554,6 +594,7 @@
       <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
     </div>
 
+    <!-- REPORT TAB -->
     <div class="tab-content active" id="tab-report">
       <div class="time-display">
         <div class="current-time" id="clock">00:00</div>
@@ -577,9 +618,13 @@
       <div class="report-result" id="report-result"></div>
     </div>
 
+    <!-- TIMELINE TAB -->
     <div class="tab-content" id="tab-timeline">
       <div class="timeline-header">
-        <div class="timeline-title">チームのリアルタイムログ</div>
+        <div>
+          <div class="timeline-title">チームの現在ステータス</div>
+          <div class="timeline-subtitle">各ユーザーの最新報告（シュウシン / キショウ）を表示</div>
+        </div>
         <div class="live-badge"><div class="live-dot"></div>LIVE</div>
       </div>
       <div id="timeline-list">
@@ -587,6 +632,7 @@
       </div>
     </div>
 
+    <!-- SETTINGS TAB -->
     <div class="tab-content" id="tab-settings">
       <div class="settings-card">
         <div class="settings-title">プロフィール設定</div>
@@ -616,23 +662,44 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
 <script>
+// #region agent log
+const __debugRunId = 'initial';
+function __debugLog(hypothesisId, location, message, data) {
+  fetch('http://127.0.0.1:7933/ingest/f2667fe8-cf21-41c0-9743-99470d37919b',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b3c2df'},body:JSON.stringify({sessionId:'b3c2df',runId:__debugRunId,hypothesisId,location,message,data,timestamp:Date.now()})}).catch(()=>{});
+}
+window.addEventListener('error', (e) => {
+  __debugLog('H1', 'index.html:script-global-error', 'window error', { message: e.message, filename: e.filename, lineno: e.lineno, colno: e.colno });
+});
+window.addEventListener('unhandledrejection', (e) => {
+  __debugLog('H1', 'index.html:script-unhandledrejection', 'window unhandled rejection', { reason: String(e.reason) });
+});
+__debugLog('H2', 'index.html:script-start', 'script started', { firebaseDefined: typeof firebase !== 'undefined' });
+// #endregion
 // ============================================================
-//  FIREBASE CONFIG (巧さんの正しい設定を埋め込み済み)
+//  FIREBASE CONFIG
+//  ここに自分のFirebaseプロジェクトの設定を貼り付けてください
 // ============================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
-  authDomain: "sleepy-nuts.firebaseapp.com",
-  projectId: "sleepy-nuts",
-  storageBucket: "sleepy-nuts.firebasestorage.app",
-  messagingSenderId: "45736862470",
-  appId: "1:45736862470:web:780336e12ecfcda222f487"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
+// #region agent log
+__debugLog('H2', 'index.html:before-firebase-init', 'before firebase.initializeApp', {
+  apiKeyIsPlaceholder: firebaseConfig.apiKey === 'YOUR_API_KEY',
+  projectId: firebaseConfig.projectId
+});
+// #endregion
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
@@ -643,17 +710,39 @@ const db = firebase.firestore();
 let currentUser = null;
 let userProfile = null;
 let unsubTimeline = null;
-let lastReportType = null; // 'sleep' or 'wake'
 
 // ============================================================
 //  AUTH
 // ============================================================
 function switchAuthTab(tab) {
-  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
-  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
-  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
-  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  document.getElementById('auth-error').style.display = 'none';
+  const loginForm = document.getElementById('login-form');
+  const registerForm = document.getElementById('register-form');
+  const tabLogin = document.getElementById('tab-login');
+  const tabRegister = document.getElementById('tab-register');
+  const authError = document.getElementById('auth-error');
+  // #region agent log
+  __debugLog('H3', 'index.html:switchAuthTab-entry', 'switchAuthTab called', {
+    tab,
+    hasLoginForm: !!loginForm,
+    hasRegisterForm: !!registerForm,
+    hasTabLogin: !!tabLogin,
+    hasTabRegister: !!tabRegister,
+    hasAuthError: !!authError
+  });
+  // #endregion
+  loginForm.style.display = tab === 'login' ? 'block' : 'none';
+  registerForm.style.display = tab === 'register' ? 'block' : 'none';
+  tabLogin.classList.toggle('active', tab === 'login');
+  tabRegister.classList.toggle('active', tab === 'register');
+  authError.style.display = 'none';
+  // #region agent log
+  __debugLog('H4', 'index.html:switchAuthTab-after-dom-update', 'switchAuthTab applied styles', {
+    loginDisplay: loginForm.style.display,
+    registerDisplay: registerForm.style.display,
+    loginActive: tabLogin.classList.contains('active'),
+    registerActive: tabRegister.classList.contains('active')
+  });
+  // #endregion
 }
 
 async function handleLogin() {
@@ -715,12 +804,10 @@ auth.onAuthStateChanged(async (user) => {
   if (user) {
     currentUser = user;
     await loadUserProfile();
-    await fetchLastReportType();
     showMainScreen();
   } else {
     currentUser = null;
     userProfile = null;
-    lastReportType = null;
     showAuthScreen();
   }
 });
@@ -731,26 +818,6 @@ async function loadUserProfile() {
     userProfile = doc.data();
   } else {
     userProfile = { displayName: 'ユーザー', goalSleep: '23:00', goalWake: '06:00' };
-  }
-}
-
-async function fetchLastReportType() {
-  try {
-    const snapshot = await db.collection('logs')
-      .where('uid', '==', currentUser.uid)
-      .orderBy('timestamp', 'desc')
-      .limit(1)
-      .get();
-    
-    if (!snapshot.empty) {
-      lastReportType = snapshot.docs[0].data().type;
-    } else {
-      const h = new Date().getHours();
-      lastReportType = (h >= 18 || h < 9) ? 'wake' : 'sleep'; 
-    }
-  } catch (e) {
-    console.error(e);
-    lastReportType = 'wake';
   }
 }
 
@@ -786,7 +853,7 @@ function showMainScreen() {
 // ============================================================
 function startClock() {
   updateClock();
-  setInterval(() => { updateClock(); }, 1000);
+  setInterval(() => { updateClock(); updateReportButton(); }, 1000);
 }
 
 function updateClock() {
@@ -800,15 +867,20 @@ function updateClock() {
 }
 
 // ============================================================
-//  REPORT BUTTON (交互に切り替える)
+//  REPORT BUTTON — auto night/day detection
 // ============================================================
+function isNightTime() {
+  const h = new Date().getHours();
+  // 18:00〜翌8:59 → 就寝モード
+  return h >= 18 || h < 9;
+}
+
 function updateReportButton() {
   const btn = document.getElementById('report-btn');
   const icon = document.getElementById('btn-icon');
   const label = document.getElementById('btn-label');
   const sub = document.getElementById('btn-sublabel');
-
-  if (lastReportType === 'wake') {
+  if (isNightTime()) {
     btn.className = 'report-btn night-mode';
     icon.textContent = '🌙';
     label.textContent = 'シュウシン';
@@ -827,8 +899,7 @@ function updateReportButton() {
 async function handleReport() {
   if (!currentUser || !userProfile) return;
   const now = new Date();
-  
-  const type = (lastReportType === 'wake') ? 'sleep' : 'wake';
+  const type = isNightTime() ? 'sleep' : 'wake';
   const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
   const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
 
@@ -844,10 +915,6 @@ async function handleReport() {
 
   try {
     await db.collection('logs').add(logData);
-    
-    lastReportType = type;
-    updateReportButton();
-    
     showReportResult(type, isOnTime);
     showToast('報告を送信しました！');
   } catch (e) {
@@ -861,10 +928,14 @@ function checkOnTime(now, goalStr, type) {
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   if (type === 'sleep') {
+    // 就寝：今が目標より前（early）なら達成
+    // 夜をまたぐ処理：例えば、目標23:00、現在22:30は達成
+    // ただし深夜0時を超えた場合（例：0:30）は遅刻
     const adjNow = now.getHours() < 12 ? nowMinutes + 1440 : nowMinutes;
     const adjGoal = gh < 12 ? goalMinutes + 1440 : goalMinutes;
     return adjNow <= adjGoal;
   } else {
+    // 起床：今が目標より前（early）なら達成
     return nowMinutes <= goalMinutes;
   }
 }
@@ -887,60 +958,105 @@ function showReportResult(type, isOnTime) {
 }
 
 // ============================================================
-//  TIMELINE
+//  TIMELINE — realtime listener
 // ============================================================
 function subscribeTimeline() {
   if (unsubTimeline) unsubTimeline();
   const list = document.getElementById('timeline-list');
   list.innerHTML = '<div class="loading">読み込み中…</div>';
 
-  unsubTimeline = db.collection('logs')
-    .orderBy('timestamp', 'desc')
-    .limit(50)
+  let usersById = {};
+  let latestLogByUid = {};
+
+  function renderStatusBoard() {
+    const userIds = Object.keys(usersById);
+    if (userIds.length === 0) {
+      list.innerHTML = '<div class="empty-timeline"><div class="big">🧑‍🤝‍🧑</div>ユーザーがまだいません</div>';
+      return;
+    }
+
+    list.innerHTML = '';
+    const grid = document.createElement('div');
+    grid.className = 'status-grid';
+
+    userIds.forEach((uid) => {
+      const profile = usersById[uid] || {};
+      const latest = latestLogByUid[uid] || null;
+      grid.appendChild(renderStatusCard(profile, latest));
+    });
+
+    list.appendChild(grid);
+  }
+
+  const usersUnsub = db.collection('users')
     .onSnapshot((snapshot) => {
-      if (snapshot.empty) {
-        list.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
-        return;
-      }
-      list.innerHTML = '';
+      const nextUsersById = {};
+      snapshot.forEach((doc) => {
+        nextUsersById[doc.id] = { uid: doc.id, ...doc.data() };
+      });
+      usersById = nextUsersById;
+      renderStatusBoard();
+    }, () => {
+      list.innerHTML = '<div class="empty-timeline">ユーザー情報の取得に失敗しました</div>';
+    });
+
+  const logsUnsub = db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(200)
+    .onSnapshot((snapshot) => {
+      const nextLatestLogByUid = {};
       snapshot.forEach((doc) => {
         const d = doc.data();
-        list.appendChild(renderLogItem(d));
+        if (!d.uid || nextLatestLogByUid[d.uid]) return;
+        nextLatestLogByUid[d.uid] = d;
       });
-    }, (err) => {
-      list.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+      latestLogByUid = nextLatestLogByUid;
+      renderStatusBoard();
+    }, () => {
+      list.innerHTML = '<div class="empty-timeline">ステータス情報の取得に失敗しました</div>';
     });
+
+  unsubTimeline = () => {
+    usersUnsub();
+    logsUnsub();
+  };
 }
 
-function renderLogItem(d) {
+function renderStatusCard(profile, latestLog) {
   const div = document.createElement('div');
-  div.className = 'log-item';
+  const statusType = latestLog && latestLog.type === 'sleep' ? 'sleeping' : latestLog && latestLog.type === 'wake' ? 'awake' : 'unknown';
+  div.className = 'status-card ' + statusType;
 
-  const icon = d.type === 'sleep' ? '🌙' : '☀️';
-  const actionText = d.type === 'sleep' ? '就寝を報告' : '起床を報告';
-  let timeStr = d.localTime || '';
-  if (d.timestamp && d.timestamp.toDate) {
-    const t = d.timestamp.toDate();
-    timeStr = t.getMonth()+1 + '/' + t.getDate() + ' ' + t.getHours() + ':' + String(t.getMinutes()).padStart(2,'0');
-  }
-
-  let badge = '';
-  if (d.isOnTime === true) {
-    badge = '<span class="log-badge badge-success">🔴 達成</span>';
-  } else if (d.isOnTime === false) {
-    badge = '<span class="log-badge badge-late">🔵 次頑張</span>';
-  }
+  const statusMap = {
+    sleeping: { label: '睡眠中', chipIcon: '🌙', eventLabel: 'シュウシン' },
+    awake: { label: '活動中', chipIcon: '☀️', eventLabel: 'キショウ' },
+    unknown: { label: '未報告', chipIcon: '•', eventLabel: '最新報告' }
+  };
+  const statusInfo = statusMap[statusType];
+  const displayName = profile.displayName || latestLog?.displayName || 'ユーザー';
+  const latestTime = getLatestLogTime(latestLog);
 
   div.innerHTML = `
-    <span class="log-icon">${icon}</span>
-    <div class="log-body">
-      <div class="log-user">${escapeHtml(d.displayName || 'ユーザー')}</div>
-      <div class="log-action">${actionText}${d.goalTime ? '　目標：' + d.goalTime : ''}</div>
-      <div class="log-time">${timeStr}</div>
+    <div class="status-card-header">
+      <div class="status-user">${escapeHtml(displayName)}</div>
+      <span class="status-chip ${statusType}">${statusInfo.chipIcon} ${statusInfo.label}</span>
     </div>
-    ${badge}
+    <div class="status-meta">
+      <span class="status-event">${statusInfo.eventLabel}</span>
+      <span class="status-time">${latestTime}</span>
+    </div>
   `;
   return div;
+}
+
+function getLatestLogTime(latestLog) {
+  if (!latestLog) return '--:--';
+  if (latestLog.localTime) return latestLog.localTime;
+  if (latestLog.timestamp && latestLog.timestamp.toDate) {
+    const t = latestLog.timestamp.toDate();
+    return String(t.getHours()).padStart(2, '0') + ':' + String(t.getMinutes()).padStart(2, '0');
+  }
+  return '--:--';
 }
 
 function escapeHtml(s) {
@@ -985,9 +1101,7 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  if (event && event.target) {
-    event.target.classList.add('active');
-  }
+  event.target.classList.add('active');
 }
 
 // ============================================================
