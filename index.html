@@ -622,7 +622,7 @@
 
 <script>
 // ============================================================
-//  FIREBASE CONFIG
+//  FIREBASE CONFIG (巧さんの正しい設定を埋め込み済み)
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
@@ -734,7 +734,6 @@ async function loadUserProfile() {
   }
 }
 
-// 自分が最後に送った報告の種類（就寝か起床か）をデータベースから調べる関数
 async function fetchLastReportType() {
   try {
     const snapshot = await db.collection('logs')
@@ -744,9 +743,8 @@ async function fetchLastReportType() {
       .get();
     
     if (!snapshot.empty) {
-      lastReportType = snapshot.docs[0].data().type; // 'sleep' または 'wake'
+      lastReportType = snapshot.docs[0].data().type;
     } else {
-      // 過去に一度も報告がない場合は、時間基準で初期値を決める
       const h = new Date().getHours();
       lastReportType = (h >= 18 || h < 9) ? 'wake' : 'sleep'; 
     }
@@ -774,4 +772,233 @@ function showMainScreen() {
   document.getElementById('user-avatar').textContent = name.charAt(0);
 
   document.getElementById('goal-sleep-input').value = userProfile.goalSleep || '23:00';
-  document.getElementById('goal-wake-input').value = userProfile.goalWake || '06
+  document.getElementById('goal-wake-input').value = userProfile.goalWake || '06:00';
+  document.getElementById('display-name-input').value = name;
+
+  updateGoalDisplay();
+  startClock();
+  updateReportButton();
+  subscribeTimeline();
+}
+
+// ============================================================
+//  CLOCK
+// ============================================================
+function startClock() {
+  updateClock();
+  setInterval(() => { updateClock(); }, 1000);
+}
+
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('clock').textContent = h + ':' + m;
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  document.getElementById('date-display').textContent =
+    now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + days[now.getDay()] + '）';
+}
+
+// ============================================================
+//  REPORT BUTTON (交互に切り替える)
+// ============================================================
+function updateReportButton() {
+  const btn = document.getElementById('report-btn');
+  const icon = document.getElementById('btn-icon');
+  const label = document.getElementById('btn-label');
+  const sub = document.getElementById('btn-sublabel');
+
+  if (lastReportType === 'wake') {
+    btn.className = 'report-btn night-mode';
+    icon.textContent = '🌙';
+    label.textContent = 'シュウシン';
+    sub.textContent = 'タップして就寝報告';
+  } else {
+    btn.className = 'report-btn day-mode';
+    icon.textContent = '☀️';
+    label.textContent = 'キショウ';
+    sub.textContent = 'タップして起床報告';
+  }
+}
+
+// ============================================================
+//  HANDLE REPORT
+// ============================================================
+async function handleReport() {
+  if (!currentUser || !userProfile) return;
+  const now = new Date();
+  
+  const type = (lastReportType === 'wake') ? 'sleep' : 'wake';
+  const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
+  const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
+
+  const logData = {
+    uid: currentUser.uid,
+    displayName: userProfile.displayName || 'ユーザー',
+    type,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    isOnTime,
+    goalTime: goalTime || null,
+    localTime: now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0')
+  };
+
+  try {
+    await db.collection('logs').add(logData);
+    
+    lastReportType = type;
+    updateReportButton();
+    
+    showReportResult(type, isOnTime);
+    showToast('報告を送信しました！');
+  } catch (e) {
+    showToast('エラー：' + e.message);
+  }
+}
+
+function checkOnTime(now, goalStr, type) {
+  const [gh, gm] = goalStr.split(':').map(Number);
+  const goalMinutes = gh * 60 + gm;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+  if (type === 'sleep') {
+    const adjNow = now.getHours() < 12 ? nowMinutes + 1440 : nowMinutes;
+    const adjGoal = gh < 12 ? goalMinutes + 1440 : goalMinutes;
+    return adjNow <= adjGoal;
+  } else {
+    return nowMinutes <= goalMinutes;
+  }
+}
+
+function showReportResult(type, isOnTime) {
+  const el = document.getElementById('report-result');
+  if (isOnTime === null) {
+    el.style.display = 'none';
+    return;
+  }
+  if (isOnTime) {
+    el.className = 'report-result success';
+    el.textContent = '🔴 目標達成！全力' + (type === 'sleep' ? '睡眠' : '起床') + '！';
+  } else {
+    el.className = 'report-result late';
+    el.textContent = '🔵 次は全力！ファイト！';
+  }
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// ============================================================
+//  TIMELINE
+// ============================================================
+function subscribeTimeline() {
+  if (unsubTimeline) unsubTimeline();
+  const list = document.getElementById('timeline-list');
+  list.innerHTML = '<div class="loading">読み込み中…</div>';
+
+  unsubTimeline = db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(50)
+    .onSnapshot((snapshot) => {
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
+        return;
+      }
+      list.innerHTML = '';
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        list.appendChild(renderLogItem(d));
+      });
+    }, (err) => {
+      list.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+    });
+}
+
+function renderLogItem(d) {
+  const div = document.createElement('div');
+  div.className = 'log-item';
+
+  const icon = d.type === 'sleep' ? '🌙' : '☀️';
+  const actionText = d.type === 'sleep' ? '就寝を報告' : '起床を報告';
+  let timeStr = d.localTime || '';
+  if (d.timestamp && d.timestamp.toDate) {
+    const t = d.timestamp.toDate();
+    timeStr = t.getMonth()+1 + '/' + t.getDate() + ' ' + t.getHours() + ':' + String(t.getMinutes()).padStart(2,'0');
+  }
+
+  let badge = '';
+  if (d.isOnTime === true) {
+    badge = '<span class="log-badge badge-success">🔴 達成</span>';
+  } else if (d.isOnTime === false) {
+    badge = '<span class="log-badge badge-late">🔵 次頑張</span>';
+  }
+
+  div.innerHTML = `
+    <span class="log-icon">${icon}</span>
+    <div class="log-body">
+      <div class="log-user">${escapeHtml(d.displayName || 'ユーザー')}</div>
+      <div class="log-action">${actionText}${d.goalTime ? '　目標：' + d.goalTime : ''}</div>
+      <div class="log-time">${timeStr}</div>
+    </div>
+    ${badge}
+  `;
+  return div;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+//  SETTINGS
+// ============================================================
+function updateGoalDisplay() {
+  document.getElementById('goal-sleep-display').textContent = userProfile.goalSleep || '未設定';
+  document.getElementById('goal-wake-display').textContent = userProfile.goalWake || '未設定';
+}
+
+async function saveSettings() {
+  if (!currentUser) return;
+  const name = document.getElementById('display-name-input').value.trim();
+  const goalSleep = document.getElementById('goal-sleep-input').value;
+  const goalWake = document.getElementById('goal-wake-input').value;
+  if (!name) return showToast('表示名を入力してください');
+
+  await db.collection('users').doc(currentUser.uid).set({
+    displayName: name,
+    goalSleep,
+    goalWake
+  }, { merge: true });
+
+  userProfile = { ...userProfile, displayName: name, goalSleep, goalWake };
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-avatar').textContent = name.charAt(0);
+  updateGoalDisplay();
+
+  const msg = document.getElementById('save-msg');
+  msg.style.display = 'inline';
+  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+}
+
+// ============================================================
+//  TAB NAVIGATION
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
+</body>
+</html>
