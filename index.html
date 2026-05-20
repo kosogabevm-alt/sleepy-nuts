@@ -500,7 +500,6 @@
 <body>
 
 <div id="app">
-  <!-- AUTH SCREEN -->
   <div id="auth-screen">
     <div class="auth-logo">全力睡眠</div>
     <div class="auth-tagline">チームで作る最強の睡眠習慣</div>
@@ -539,7 +538,6 @@
     </div>
   </div>
 
-  <!-- MAIN APP -->
   <div id="main-screen">
     <div class="header">
       <div class="header-logo">全力睡眠</div>
@@ -556,7 +554,6 @@
       <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
     </div>
 
-    <!-- REPORT TAB -->
     <div class="tab-content active" id="tab-report">
       <div class="time-display">
         <div class="current-time" id="clock">00:00</div>
@@ -580,7 +577,6 @@
       <div class="report-result" id="report-result"></div>
     </div>
 
-    <!-- TIMELINE TAB -->
     <div class="tab-content" id="tab-timeline">
       <div class="timeline-header">
         <div class="timeline-title">チームのリアルタイムログ</div>
@@ -591,7 +587,6 @@
       </div>
     </div>
 
-    <!-- SETTINGS TAB -->
     <div class="tab-content" id="tab-settings">
       <div class="settings-card">
         <div class="settings-title">プロフィール設定</div>
@@ -621,7 +616,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
@@ -629,15 +623,15 @@
 <script>
 // ============================================================
 //  FIREBASE CONFIG
-//  ここに自分のFirebaseプロジェクトの設定を貼り付けてください
+//  巧さんのFirebaseプロジェクト「sleepy-nuts」の設定値です！
 // ============================================================
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
+  authDomain: "sleepy-nuts.firebaseapp.com",
+  projectId: "sleepy-nuts",
+  storageBucket: "sleepy-nuts.firebasestorage.app",
+  messagingSenderId: "45736862470",
+  appId: "1:45736862470:web:780336e12ecfcda222f487"
 };
 
 firebase.initializeApp(firebaseConfig);
@@ -788,7 +782,6 @@ function updateClock() {
 // ============================================================
 function isNightTime() {
   const h = new Date().getHours();
-  // 18:00〜翌8:59 → 就寝モード
   return h >= 18 || h < 9;
 }
 
@@ -845,14 +838,10 @@ function checkOnTime(now, goalStr, type) {
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
   if (type === 'sleep') {
-    // 就寝：今が目標より前（early）なら達成
-    // 夜をまたぐ処理：例えば、目標23:00、現在22:30は達成
-    // ただし深夜0時を超えた場合（例：0:30）は遅刻
     const adjNow = now.getHours() < 12 ? nowMinutes + 1440 : nowMinutes;
     const adjGoal = gh < 12 ? goalMinutes + 1440 : goalMinutes;
     return adjNow <= adjGoal;
   } else {
-    // 起床：今が目標より前（early）なら達成
     return nowMinutes <= goalMinutes;
   }
 }
@@ -973,7 +962,9 @@ function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
+  if (event && event.target) {
+    event.target.classList.add('active');
+  }
 }
 
 // ============================================================
