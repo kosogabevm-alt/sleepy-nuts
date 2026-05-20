@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シュウシン - 睡眠全力会</title>
+    <!-- Tailwind CSS (Aesthetics & Modern Theme) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0b0f19;
+            color: #f8fafc;
+        }
+        
+        .accent-title {
+            font-family: 'Dela Gothic One', sans-serif;
+        }
+
+        /* 呼吸するようなボタンのアニメーション（全力感を演出） */
+        @keyframes pulse-light {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1); }
+            50% { transform: scale(1.03); box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2); }
+        }
+        .pulse-btn {
+            animation: pulse-light 3s infinite ease-in-out;
+        }
+        
+        /* カスタムスクロールバー */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0b0f19;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 pb-12">
+
+    <!-- アプリの最大幅を制限してスマホライクに -->
+    <div class="w-full max-w-md flex flex-col gap-6">
+        
+        <!-- ヘッダー -->
+        <header class="text-center mt-4">
+            <div class="flex items-center justify-center gap-2 mb-1">
+                <span class="text-rose-500"><i data-lucide="moon" class="w-6 h-6 fill-current"></i></span>
+                <h1 class="text-2xl font-black tracking-widest text-slate-100 accent-title">睡眠全力会</h1>
+                <span class="text-blue-500"><i data-lucide="sun" class="w-6 h-6 fill-current"></i></span>
+            </div>
+            <p class="text-xs text-slate-400 font-bold tracking-wider">公式報告プラットフォーム「シュウシン」</p>
+        </header>
+
+        <!-- 【テスト用】ユーザー切り替えパネル（3台のスマホの動きを1台でシミュレートするため） -->
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3">
+            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">［開発・テスト用］操作ユーザー切り替え</p>
+            <div class="grid grid-cols-3 gap-2" id="user-switcher">
+                <!-- JSで動的にアクティブを切り替えます -->
+            </div>
+        </div>
+
+        <!-- メイン：自分の設定＆操作エリア -->
+        <main class="bg-slate-900 border border-slate-800/80 rounded-3xl p-6 shadow-xl relative overflow-hidden">
+            <!-- 背景にうっすら光るエフェクト -->
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-slate-800 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
+            
+            <!-- アクティブなユーザー名表示 -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700/50">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-xs font-black text-slate-200" id="current-user-name">ユーザー</span>
+                </div>
+                <!-- 設定ボタン -->
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-100 transition-colors p-1 hover:bg-slate-800 rounded-lg">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- 目標時間表示 -->
+            <div class="text-center mb-8">
+                <p class="text-xs font-bold text-slate-400 tracking-wider mb-1" id="target-label">目標就寝時間</p>
+                <div class="text-4xl font-black tracking-tight text-white flex justify-center items-center gap-1">
+                    <span id="target-time-display">23:00</span>
+                    <span class="text-xs font-medium text-slate-500 ml-1">まで</span>
+                </div>
+            </div>
+
+            <!-- 報告アクションボタン -->
+            <div class="flex flex-col items-center justify-center">
+                <button id="action-btn" onclick="executeReport()" class="w-48 h-48 rounded-full bg-white text-slate-950 font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-slate-800 pulse-btn">
+                    <span id="btn-icon">
+                        <i data-lucide="moon" class="w-8 h-8 fill-current"></i>
+                    </span>
+                    <span id="btn-text">シュウシン</span>
+                </button>
+                <p class="text-[11px] text-slate-500 mt-4 text-center font-bold">
+                    ※タップすると実際の時刻を取得し、<br>目標と比較して自動でグループに報告されます。
+                </p>
+            </div>
+        </main>
+
+        <!-- グループタイムライン -->
+        <section class="flex flex-col gap-3">
+            <div class="flex justify-between items-center px-2">
+                <h2 class="text-sm font-black text-slate-400 tracking-wider uppercase flex items-center gap-1.5">
+                    <i data-lucide="users" class="w-4 h-4 text-rose-500"></i>
+                    睡眠全力会 タイムライン
+                </h2>
+                <!-- データ全削除ボタン -->
+                <button onclick="clearAllLogs()" class="text-[10px] text-rose-400/70 hover:text-rose-400 font-bold hover:underline">
+                    履歴を消去
+                </button>
+            </div>
+
+            <!-- ログリスト -->
+            <div id="timeline-container" class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1">
+                <!-- 動的にログが挿入されます -->
+            </div>
+        </section>
+
+    </div>
+
+    <!-- ⚙️ 目標設定モーダル -->
+    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-lg font-black text-white flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-5 h-5 text-rose-500"></i>
+                    個人の目標設定
+                </h3>
+                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="flex flex-col gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 mb-1">あなたの名前</label>
+                    <input type="text" id="input-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">目標就寝時間</label>
+                        <input type="time" id="input-sleep" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-400 mb-1">目標起床時間</label>
+                        <input type="time" id="input-wake" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
+                    </div>
+                </div>
+
+                <button onclick="saveSettings()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mt-2 transition-all shadow-lg active:scale-95">
+                    設定を保存する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- アラートトースト -->
+    <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-4 py-2.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+        <span id="toast-icon"></span>
+        <span id="toast-message"></span>
+    </div>
+
+    <script>
+        // 初期ユーザー（3人の睡眠全力会メンバー）
+        const DEFAULT_USERS = [
+            { id: "user-1", name: "全力A君", targetSleep: "23:00", targetWake: "06:30", currentStatus: "night" },
+            { id: "user-2", name: "全力B君", targetSleep: "23:30", targetWake: "07:00", currentStatus: "night" },
+            { id: "user-3", name: "全力C君", targetSleep: "22:45", targetWake: "06:00", currentStatus: "night" }
+        ];
+
+        let users = [];
+        let activeUserId = "user-1";
+        let logs = [];
+
+        // アプリ起動時のセットアップ
+        window.onload = function() {
+            // ローカルストレージからデータを復元、無ければ初期メンバーを適用
+            const savedUsers = localStorage.getItem('shushin_users');
+            if (savedUsers) {
+                users = JSON.parse(savedUsers);
+            } else {
+                users = DEFAULT_USERS;
+                localStorage.setItem('shushin_users', JSON.stringify(users));
+            }
+
+            const savedLogs = localStorage.getItem('shushin_logs');
+            if (savedLogs) {
+                logs = JSON.parse(savedLogs);
+            }
+
+            // UIの初期化
+            lucide.createIcons();
+            renderUserSwitcher();
+            switchUser(activeUserId);
+            renderTimeline();
+        }
+
+        // ユーザー切り替えボタンの描画
+        function renderUserSwitcher() {
+            const switcher = document.getElementById('user-switcher');
+            switcher.innerHTML = '';
+            users.forEach(user => {
+                const btn = document.createElement('button');
+                btn.id = `switch-${user.id}`;
+                btn.className = `py-2 px-1.5 text-xs font-black rounded-xl transition-all border ${
+                    user.id === activeUserId 
+                    ? 'bg-slate-100 text-slate-950 border-white shadow-md' 
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
+                }`;
+                btn.innerText = user.name;
+                btn.onclick = () => switchUser(user.id);
+                switcher.appendChild(btn);
+            });
+        }
+
+        // ユーザーの切り替え処理
+        function switchUser(userId) {
+            activeUserId = userId;
+            const user = users.find(u => u.id === userId);
+            
+            // 切り替えボタンのアクティブ表示変更
+            users.forEach(u => {
+                const btn = document.getElementById(`switch-${u.id}`);
+                if (btn) {
+                    if (u.id === userId) {
+                        btn.className = "py-2 px-1.5 text-xs font-black rounded-xl transition-all border bg-slate-100 text-slate-950 border-white shadow-md";
+                    } else {
+                        btn.className = "py-2 px-1.5 text-xs font-black rounded-xl transition-all border bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200";
+                    }
+                }
+            });
+
+            // メイン画面の表示をこのユーザーの設定に変更
+            document.getElementById('current-user-name').innerText = user.name;
+            updateMainButtonUI(user);
+        }
+
+        // ユーザーの現在の状況（就寝報告待ち or 起床報告待ち）に合わせてボタンと目標時間の表示を切り替え
+        function updateMainButtonUI(user) {
+            const label = document.getElementById('target-label');
+            const timeDisplay = document.getElementById('target-time-display');
+            const btn = document.getElementById('action-btn');
+            const btnIcon = document.getElementById('btn-icon');
+            const btnText = document.getElementById('btn-text');
+
+            if (user.currentStatus === "night") {
+                // 就寝報告待ちモード
+                label.innerText = "目標就寝時間";
+                timeDisplay.innerText = user.targetSleep;
+                
+                // ボタンをシュウシン（白ベース）に
+                btn.className = "w-48 h-48 rounded-full bg-slate-100 text-slate-950 font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-slate-800 pulse-btn";
+                btnIcon.innerHTML = `<i data-lucide="moon" class="w-8 h-8 fill-current text-slate-900"></i>`;
+                btnText.innerText = "シュウシン";
+            } else {
+                // 起床報告待ちモード
+                label.innerText = "目標起床時間";
+                timeDisplay.innerText = user.targetWake;
+
+                // ボタンをキショウ（太陽のオレンジ/ゴールドベース）に
+                btn.className = "w-48 h-48 rounded-full bg-amber-500 text-white font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-amber-400 pulse-btn";
+                btnIcon.innerHTML = `<i data-lucide="sun" class="w-8 h-8 fill-current text-white"></i>`;
+                btnText.innerText = "キショウ";
+            }
+            lucide.createIcons();
+        }
+
+        // シュウシン・キショウの報告実行
+        function executeReport() {
+            const user = users.find(u => u.id === activeUserId);
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+            const actualTimeStr = `${String(currentHours).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}`;
+
+            let isEarly = false;
+            let targetTimeStr = "";
+            let logType = ""; // "sleep" or "wake"
+
+            if (user.currentStatus === "night") {
+                // 就寝判定
+                logType = "sleep";
+                targetTimeStr = user.targetSleep;
+                isEarly = compareTime(actualTimeStr, targetTimeStr, true); // 就寝は目標時間より「前」なら早期（赤）
+                user.currentStatus = "morning"; // 次は起床待ち
+            } else {
+                // 起床判定
+                logType = "wake";
+                targetTimeStr = user.targetWake;
+                isEarly = compareTime(actualTimeStr, targetTimeStr, false); // 起床は目標時間より「前（早起き）」なら早期（赤）
+                user.currentStatus = "night"; // 次は就寝待ち
+            }
+
+            // 新しいログオブジェクトの生成
+            const newLog = {
+                id: `log-${Date.now()}`,
+                userId: user.id,
+                userName: user.name,
+                type: logType,
+                actualTime: actualTimeStr,
+                targetTime: targetTimeStr,
+                isEarly: isEarly,
+                timestamp: Date.now()
+            };
+
+            // タイムラインの先頭に追加
+            logs.unshift(newLog);
+
+            // データの保存
+            localStorage.setItem('shushin_users', JSON.stringify(users));
+            localStorage.setItem('shushin_logs', JSON.stringify(logs));
+
+            // UI更新
+            updateMainButtonUI(user);
+            renderTimeline();
+
+            // トーストで結果をお知らせ
+            showToast(
+                isEarly ? "🔴 目標時間より早いです！ナイス睡眠全力！" : "🔵 目標時間を過ぎています。次は頑張りましょう！", 
+                isEarly ? "check-circle" : "info"
+            );
+        }
+
+        // 時刻文字列 (HH:MM) の比較ロジック
+        // isSleep: 就寝の場合は夜間の比較を行うための特別な考慮
+        function compareTime(actual, target, isSleep) {
+            const [aH, aM] = actual.split(':').map(Number);
+            const [tH, tM] = target.split(':').map(Number);
+
+            const actualMinutes = aH * 60 + aM;
+            const targetMinutes = tH * 60 + tM;
+
+            if (isSleep) {
+                // 就寝時：夜21時〜朝4時の範囲などを考慮
+                // 単純比較でも動きますが、深夜0時を跨ぐ場合の処理
+                // 例: 目標が 23:30 (1410分) で、実際が 00:10 (10分)。これは遅刻。
+                // 基準点として12時(720分)からどれだけ経過したかで比較すると正確になります
+                const adjustTime = (m) => (m < 720) ? m + 1440 : m; 
+                return adjustTime(actualMinutes) <= adjustTime(targetMinutes);
+            } else {
+                // 起床時：目標 06:30 に対して実際 06:10 は「早い（成功）」
+                return actualMinutes <= targetMinutes;
+            }
+        }
+
+        // タイムライン（部室）の描画
+        function renderTimeline() {
+            const container = document.getElementById('timeline-container');
+            container.innerHTML = '';
+
+            if (logs.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 text-slate-500 font-bold border-2 border-dashed border-slate-800 rounded-2xl">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
+                        今日の報告はまだありません。
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            logs.forEach(log => {
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex justify-between items-center shadow-md";
+
+                // 判定結果に応じたスタイル
+                const statusClass = log.isEarly ? "text-rose-500" : "text-blue-500";
+                const dotColor = log.isEarly ? "bg-rose-500" : "bg-blue-500";
+                const iconHtml = log.isEarly ? "🔴" : "🔵";
+                const actionLabel = log.type === "sleep" ? "シュウシン" : "キショウ";
+
+                card.innerHTML = `
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
+                            <span class="font-black text-sm text-slate-100">${escapeHtml(log.userName)}</span>
+                        </div>
+                        <div class="text-[11px] font-bold text-slate-500">
+                            目標 ${log.targetTime} | 実際 <span class="text-slate-300 font-black">${log.actualTime}</span>
+                        </div>
+                    </div>
+                    <div class="text-right flex flex-col items-end">
+                        <span class="text-lg font-black tracking-wider ${statusClass}">
+                            ${iconHtml}${actionLabel}
+                        </span>
+                        <span class="text-[9px] text-slate-600 font-bold">${formatDate(log.timestamp)}</span>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            lucide.createIcons();
+        }
+
+        // 設定モーダルの表示・非表示
+        function toggleSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            const user = users.find(u => u.id === activeUserId);
+            
+            if (modal.classList.contains('hidden')) {
+                // 開くときに現在の設定値をインプットにセット
+                document.getElementById('input-name').value = user.name;
+                document.getElementById('input-sleep').value = user.targetSleep;
+                document.getElementById('input-wake').value = user.targetWake;
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // 設定の保存
+        function saveSettings() {
+            const name = document.getElementById('input-name').value.trim();
+            const sleep = document.getElementById('input-sleep').value;
+            const wake = document.getElementById('input-wake').value;
+
+            if (!name || !sleep || !wake) {
+                showToast("すべての項目を入力してください！", "alert-triangle");
+                return;
+            }
+
+            const userIndex = users.findIndex(u => u.id === activeUserId);
+            users[userIndex].name = name;
+            users[userIndex].targetSleep = sleep;
+            users[userIndex].targetWake = wake;
+
+            // ローカルストレージに保存
+            localStorage.setItem('shushin_users', JSON.stringify(users));
+
+            // 表示の更新
+            renderUserSwitcher();
+            switchUser(activeUserId);
+            renderTimeline(); // 過去のログの表示名も更新されるように再描画
+            toggleSettingsModal();
+
+            showToast("目標設定を更新しました！", "check");
+        }
+
+        // タイムラインログの全消去
+        function clearAllLogs() {
+            if (confirm("これまでの全力睡眠の全記録を消去します。よろしいですか？")) {
+                logs = [];
+                localStorage.removeItem('shushin_logs');
+                renderTimeline();
+                showToast("すべての記録を消去しました。", "trash-2");
+            }
+        }
+
+        // 日時フォーマット用
+        function formatDate(timestamp) {
+            const d = new Date(timestamp);
+            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+
+        // トースト通知の表示
+        function showToast(message, iconName) {
+            const toast = document.getElementById('toast');
+            const iconSpan = document.getElementById('toast-icon');
+            const messageSpan = document.getElementById('toast-message');
+
+            iconSpan.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 text-emerald-400"></i>`;
+            messageSpan.innerText = message;
+            lucide.createIcons();
+
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+
+        // HTMLエスケープ（セキュリティ対策）
+        function escapeHtml(str) {
+            return str.replace(/&/g, '&amp;')
+                      .replace(/</g, '&lt;')
+                      .replace(/>/g, '&gt;')
+                      .replace(/"/g, '&quot;')
+                      .replace(/'/g, '&#039;');
+        }
+    </script>
+</body>
+</html>
