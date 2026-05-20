@@ -1037,23 +1037,24 @@ async function saveSettings() {
   setTimeout(() => { msg.style.display = 'none'; }, 2500);
 }
 
-// ============================================================
+
+}// ============================================================
 //  TAB NAVIGATION
 // ============================================================
 function switchTab(name) {
+  // すべてのコンテンツとボタンから active クラスを消す
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
   
-  // クリックされたボタンをアクティブにする処理
-  if (event && event.target) {
-    event.target.classList.add('active');
-  } else {
-    // ボタンの並び順から直接クラスを付与するフォールバック
-    const btns = document.querySelectorAll('.tab-btn');
-    if (name === 'report') btns[0].classList.add('active');
-    if (name === 'timeline') btns[1].classList.add('active');
-    if (name === 'settings') btns[2].classList.add('active');
+  // 選択されたタブのコンテンツを表示する
+  const targetTab = document.getElementById('tab-' + name);
+  if (targetTab) {
+    targetTab.classList.add('active');
+  }
+  
+  // クリックされたボタン自体に active クラスをつける（エラーの起きない安全な書き方）
+  if (window.event && window.event.target) {
+    window.event.target.classList.add('active');
   }
 }
 
