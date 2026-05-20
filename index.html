@@ -1,492 +1,990 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シュウシン - 睡眠全力会</title>
-    <!-- Tailwind CSS (Aesthetics & Modern Theme) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
-        
-        body {
-            font-family: 'Noto Sans JP', sans-serif;
-            background-color: #0b0f19;
-            color: #f8fafc;
-        }
-        
-        .accent-title {
-            font-family: 'Dela Gothic One', sans-serif;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全力睡眠 — チーム睡眠管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --night: #0a0e1a;
+    --night-2: #111827;
+    --night-3: #1c2535;
+    --night-4: #253047;
+    --moon: #c8d8f8;
+    --moon-2: #8fa8e8;
+    --sun: #f5c842;
+    --sun-2: #ff9a3c;
+    --red: #ff4d6d;
+    --blue: #4facfe;
+    --green: #43e97b;
+    --text: #e8edf8;
+    --text-2: #8fa8c8;
+    --border: rgba(200,216,248,0.1);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--night);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
 
-        /* 呼吸するようなボタンのアニメーション（全力感を演出） */
-        @keyframes pulse-light {
-            0%, 100% { transform: scale(1); box-shadow: 0 10px 25px rgba(255, 255, 255, 0.1); }
-            50% { transform: scale(1.03); box-shadow: 0 15px 35px rgba(255, 255, 255, 0.2); }
-        }
-        .pulse-btn {
-            animation: pulse-light 3s infinite ease-in-out;
-        }
-        
-        /* カスタムスクロールバー */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0b0f19;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1e293b;
-            border-radius: 10px;
-        }
-    </style>
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 50% 50%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 75%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 90% 70%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 30%, rgba(255,255,255,0.6) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  #app { position: relative; z-index: 1; }
+
+  /* ===== AUTH SCREEN ===== */
+  #auth-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 2rem 1.5rem;
+  }
+  .auth-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3.5rem;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, var(--moon), var(--sun));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.25rem;
+  }
+  .auth-tagline {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    margin-bottom: 2.5rem;
+    letter-spacing: 0.05em;
+  }
+  .auth-card {
+    background: var(--night-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 0;
+    background: var(--night-3);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+  .auth-tab {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    background: transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 0.9rem;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .auth-tab.active {
+    background: var(--night-4);
+    color: var(--moon);
+    font-weight: 700;
+  }
+  .form-group { margin-bottom: 1rem; }
+  .form-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-2);
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+  }
+  .form-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--night-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--moon-2); }
+  .btn-primary {
+    width: 100%;
+    padding: 0.85rem;
+    background: linear-gradient(135deg, #3a7bd5, #5a6fd6);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+    margin-top: 0.5rem;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:active { transform: scale(0.98); }
+  .auth-error {
+    color: var(--red);
+    font-size: 0.85rem;
+    margin-top: 0.75rem;
+    text-align: center;
+    display: none;
+  }
+
+  /* ===== MAIN APP ===== */
+  #main-screen { display: none; }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,14,26,0.8);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.05em;
+    background: linear-gradient(135deg, var(--moon), var(--sun));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--night-3), var(--night-4));
+    border: 1px solid var(--moon-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--moon);
+  }
+  .btn-logout {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 0.8rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-logout:hover { border-color: var(--text-2); color: var(--text); }
+
+  .tabs-nav {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: var(--night);
+    position: sticky;
+    top: 65px;
+    z-index: 99;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 0.85rem;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-2);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    color: var(--moon);
+    border-bottom-color: var(--moon);
+  }
+
+  .tab-content { display: none; padding: 1.5rem; }
+  .tab-content.active { display: block; }
+
+  /* ===== REPORT TAB ===== */
+  .time-display {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+  .current-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    letter-spacing: 0.05em;
+    color: var(--moon);
+    line-height: 1;
+  }
+  .current-date {
+    font-size: 0.85rem;
+    color: var(--text-2);
+    margin-top: 0.25rem;
+  }
+
+  /* The big button */
+  .report-btn-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1.5rem 0 2rem;
+  }
+  .report-btn {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: transform 0.15s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .report-btn:active { transform: scale(0.94); }
+  .report-btn.night-mode {
+    background: radial-gradient(circle at 40% 40%, #1e3a6e, #0a1628);
+    box-shadow: 0 0 40px rgba(100,160,255,0.3), 0 0 80px rgba(100,160,255,0.1), inset 0 0 30px rgba(255,255,255,0.05);
+  }
+  .report-btn.day-mode {
+    background: radial-gradient(circle at 40% 40%, #f5a623, #e05b00);
+    box-shadow: 0 0 40px rgba(245,168,35,0.4), 0 0 80px rgba(245,168,35,0.2), inset 0 0 30px rgba(255,255,255,0.1);
+  }
+  .report-btn:hover.night-mode { box-shadow: 0 0 60px rgba(100,160,255,0.5), 0 0 100px rgba(100,160,255,0.2); }
+  .report-btn:hover.day-mode { box-shadow: 0 0 60px rgba(245,168,35,0.6), 0 0 100px rgba(245,168,35,0.3); }
+  .btn-icon { font-size: 3.5rem; line-height: 1; }
+  .btn-label {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.1em;
+    color: white;
+  }
+  .btn-sublabel { font-size: 0.75rem; color: rgba(255,255,255,0.7); }
+
+  .report-result {
+    text-align: center;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+  .report-result.success {
+    background: rgba(67,233,123,0.1);
+    border: 1px solid rgba(67,233,123,0.3);
+    color: var(--green);
+  }
+  .report-result.late {
+    background: rgba(79,172,254,0.1);
+    border: 1px solid rgba(79,172,254,0.3);
+    color: var(--blue);
+  }
+
+  /* ===== GOAL SETTINGS ===== */
+  .settings-card {
+    background: var(--night-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .settings-title {
+    font-size: 0.8rem;
+    color: var(--text-2);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .time-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .time-icon { font-size: 1.5rem; }
+  .time-label { flex: 1; font-size: 0.95rem; }
+  .time-input {
+    padding: 0.5rem 0.75rem;
+    background: var(--night-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 1rem;
+    outline: none;
+    width: 120px;
+  }
+  .time-input:focus { border-color: var(--moon-2); }
+  .display-name-row { margin-bottom: 1rem; }
+  .btn-save {
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #0f4c81, #1a6bb5);
+    border: none;
+    border-radius: var(--radius-sm);
+    color: white;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-save:hover { opacity: 0.85; }
+  .save-msg {
+    font-size: 0.85rem;
+    color: var(--green);
+    margin-left: 1rem;
+    display: none;
+  }
+
+  /* ===== TIMELINE ===== */
+  .timeline-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+  .timeline-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--moon);
+  }
+  .live-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--green);
+    background: rgba(67,233,123,0.1);
+    padding: 0.3rem 0.65rem;
+    border-radius: 20px;
+    border: 1px solid rgba(67,233,123,0.2);
+  }
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .log-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--night-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 0.75rem;
+    animation: slideIn 0.35s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .log-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .log-body { flex: 1; }
+  .log-user { font-weight: 700; font-size: 0.95rem; }
+  .log-action { font-size: 0.85rem; color: var(--text-2); margin-top: 0.1rem; }
+  .log-time { font-size: 0.75rem; color: var(--text-2); }
+  .log-badge {
+    align-self: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+  .badge-success {
+    background: rgba(67,233,123,0.15);
+    color: var(--green);
+    border: 1px solid rgba(67,233,123,0.3);
+  }
+  .badge-late {
+    background: rgba(79,172,254,0.15);
+    color: var(--blue);
+    border: 1px solid rgba(79,172,254,0.3);
+  }
+  .empty-timeline {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-2);
+    font-size: 0.9rem;
+  }
+  .empty-timeline .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
+
+  /* Loading */
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    color: var(--text-2);
+    font-size: 0.9rem;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--night-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9rem;
+    color: var(--text);
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .report-btn { width: 170px; height: 170px; }
+    .current-time { font-size: 3rem; }
+  }
+</style>
 </head>
-<body class="min-h-screen flex flex-col items-center p-4 pb-12">
+<body>
 
-    <!-- アプリの最大幅を制限してスマホライクに -->
-    <div class="w-full max-w-md flex flex-col gap-6">
-        
-        <!-- ヘッダー -->
-        <header class="text-center mt-4">
-            <div class="flex items-center justify-center gap-2 mb-1">
-                <span class="text-rose-500"><i data-lucide="moon" class="w-6 h-6 fill-current"></i></span>
-                <h1 class="text-2xl font-black tracking-widest text-slate-100 accent-title">睡眠全力会</h1>
-                <span class="text-blue-500"><i data-lucide="sun" class="w-6 h-6 fill-current"></i></span>
-            </div>
-            <p class="text-xs text-slate-400 font-bold tracking-wider">公式報告プラットフォーム「シュウシン」</p>
-        </header>
-
-        <!-- 【テスト用】ユーザー切り替えパネル（3台のスマホの動きを1台でシミュレートするため） -->
-        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-3">
-            <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 text-center">［開発・テスト用］操作ユーザー切り替え</p>
-            <div class="grid grid-cols-3 gap-2" id="user-switcher">
-                <!-- JSで動的にアクティブを切り替えます -->
-            </div>
+<div id="app">
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-logo">全力睡眠</div>
+    <div class="auth-tagline">チームで作る最強の睡眠習慣</div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">ログイン</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">新規登録</button>
+      </div>
+      <div id="login-form">
+        <div class="form-group">
+          <label class="form-label">メールアドレス</label>
+          <input class="form-input" type="email" id="login-email" placeholder="you@example.com">
         </div>
-
-        <!-- メイン：自分の設定＆操作エリア -->
-        <main class="bg-slate-900 border border-slate-800/80 rounded-3xl p-6 shadow-xl relative overflow-hidden">
-            <!-- 背景にうっすら光るエフェクト -->
-            <div class="absolute -top-10 -right-10 w-32 h-32 bg-slate-800 rounded-full blur-3xl opacity-30 pointer-events-none"></div>
-            
-            <!-- アクティブなユーザー名表示 -->
-            <div class="flex justify-between items-center mb-6">
-                <div class="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-full border border-slate-700/50">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span class="text-xs font-black text-slate-200" id="current-user-name">ユーザー</span>
-                </div>
-                <!-- 設定ボタン -->
-                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-slate-100 transition-colors p-1 hover:bg-slate-800 rounded-lg">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <!-- 目標時間表示 -->
-            <div class="text-center mb-8">
-                <p class="text-xs font-bold text-slate-400 tracking-wider mb-1" id="target-label">目標就寝時間</p>
-                <div class="text-4xl font-black tracking-tight text-white flex justify-center items-center gap-1">
-                    <span id="target-time-display">23:00</span>
-                    <span class="text-xs font-medium text-slate-500 ml-1">まで</span>
-                </div>
-            </div>
-
-            <!-- 報告アクションボタン -->
-            <div class="flex flex-col items-center justify-center">
-                <button id="action-btn" onclick="executeReport()" class="w-48 h-48 rounded-full bg-white text-slate-950 font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-slate-800 pulse-btn">
-                    <span id="btn-icon">
-                        <i data-lucide="moon" class="w-8 h-8 fill-current"></i>
-                    </span>
-                    <span id="btn-text">シュウシン</span>
-                </button>
-                <p class="text-[11px] text-slate-500 mt-4 text-center font-bold">
-                    ※タップすると実際の時刻を取得し、<br>目標と比較して自動でグループに報告されます。
-                </p>
-            </div>
-        </main>
-
-        <!-- グループタイムライン -->
-        <section class="flex flex-col gap-3">
-            <div class="flex justify-between items-center px-2">
-                <h2 class="text-sm font-black text-slate-400 tracking-wider uppercase flex items-center gap-1.5">
-                    <i data-lucide="users" class="w-4 h-4 text-rose-500"></i>
-                    睡眠全力会 タイムライン
-                </h2>
-                <!-- データ全削除ボタン -->
-                <button onclick="clearAllLogs()" class="text-[10px] text-rose-400/70 hover:text-rose-400 font-bold hover:underline">
-                    履歴を消去
-                </button>
-            </div>
-
-            <!-- ログリスト -->
-            <div id="timeline-container" class="flex flex-col gap-2.5 max-h-[350px] overflow-y-auto pr-1">
-                <!-- 動的にログが挿入されます -->
-            </div>
-        </section>
-
-    </div>
-
-    <!-- ⚙️ 目標設定モーダル -->
-    <div id="settings-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-black text-white flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-5 h-5 text-rose-500"></i>
-                    個人の目標設定
-                </h3>
-                <button onclick="toggleSettingsModal()" class="text-slate-400 hover:text-white">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="flex flex-col gap-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-400 mb-1">あなたの名前</label>
-                    <input type="text" id="input-name" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1">目標就寝時間</label>
-                        <input type="time" id="input-sleep" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-slate-400 mb-1">目標起床時間</label>
-                        <input type="time" id="input-wake" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:border-rose-500">
-                    </div>
-                </div>
-
-                <button onclick="saveSettings()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 rounded-xl mt-2 transition-all shadow-lg active:scale-95">
-                    設定を保存する
-                </button>
-            </div>
+        <div class="form-group">
+          <label class="form-label">パスワード</label>
+          <input class="form-input" type="password" id="login-password" placeholder="••••••••">
         </div>
+        <button class="btn-primary" onclick="handleLogin()">ログイン →</button>
+      </div>
+      <div id="register-form" style="display:none">
+        <div class="form-group">
+          <label class="form-label">表示名（部活での名前）</label>
+          <input class="form-input" type="text" id="reg-name" placeholder="例：田中">
+        </div>
+        <div class="form-group">
+          <label class="form-label">メールアドレス</label>
+          <input class="form-input" type="email" id="reg-email" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">パスワード（6文字以上）</label>
+          <input class="form-input" type="password" id="reg-password" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="handleRegister()">登録して始める →</button>
+      </div>
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="main-screen">
+    <div class="header">
+      <div class="header-logo">全力睡眠</div>
+      <div class="header-user">
+        <div class="user-avatar" id="user-avatar">？</div>
+        <span id="user-name-display" style="font-size:0.9rem;color:var(--text-2)"></span>
+        <button class="btn-logout" onclick="handleLogout()">ログアウト</button>
+      </div>
     </div>
 
-    <!-- アラートトースト -->
-    <div id="toast" class="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 border border-slate-700 text-white px-4 py-2.5 rounded-full text-xs font-bold shadow-lg flex items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
-        <span id="toast-icon"></span>
-        <span id="toast-message"></span>
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('report')">📋 報告</button>
+      <button class="tab-btn" onclick="switchTab('timeline')">👥 タイムライン</button>
+      <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
     </div>
 
-    <script>
-        // 初期ユーザー（3人の睡眠全力会メンバー）
-        const DEFAULT_USERS = [
-            { id: "user-1", name: "全力A君", targetSleep: "23:00", targetWake: "06:30", currentStatus: "night" },
-            { id: "user-2", name: "全力B君", targetSleep: "23:30", targetWake: "07:00", currentStatus: "night" },
-            { id: "user-3", name: "全力C君", targetSleep: "22:45", targetWake: "06:00", currentStatus: "night" }
-        ];
+    <!-- REPORT TAB -->
+    <div class="tab-content active" id="tab-report">
+      <div class="time-display">
+        <div class="current-time" id="clock">00:00</div>
+        <div class="current-date" id="date-display"></div>
+      </div>
+      <div class="settings-card" style="margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:0.85rem;color:var(--text-2)">🌙 目標就寝</span>
+          <span style="font-weight:700" id="goal-sleep-display">未設定</span>
+          <span style="font-size:0.85rem;color:var(--text-2)">☀️ 目標起床</span>
+          <span style="font-weight:700" id="goal-wake-display">未設定</span>
+        </div>
+      </div>
+      <div class="report-btn-wrap">
+        <button class="report-btn night-mode" id="report-btn" onclick="handleReport()">
+          <span class="btn-icon" id="btn-icon">🌙</span>
+          <span class="btn-label" id="btn-label">シュウシン</span>
+          <span class="btn-sublabel" id="btn-sublabel">タップして就寝報告</span>
+        </button>
+      </div>
+      <div class="report-result" id="report-result"></div>
+    </div>
 
-        let users = [];
-        let activeUserId = "user-1";
-        let logs = [];
+    <!-- TIMELINE TAB -->
+    <div class="tab-content" id="tab-timeline">
+      <div class="timeline-header">
+        <div class="timeline-title">チームのリアルタイムログ</div>
+        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
+      </div>
+      <div id="timeline-list">
+        <div class="loading">読み込み中…</div>
+      </div>
+    </div>
 
-        // アプリ起動時のセットアップ
-        window.onload = function() {
-            // ローカルストレージからデータを復元、無ければ初期メンバーを適用
-            const savedUsers = localStorage.getItem('shushin_users');
-            if (savedUsers) {
-                users = JSON.parse(savedUsers);
-            } else {
-                users = DEFAULT_USERS;
-                localStorage.setItem('shushin_users', JSON.stringify(users));
-            }
+    <!-- SETTINGS TAB -->
+    <div class="tab-content" id="tab-settings">
+      <div class="settings-card">
+        <div class="settings-title">プロフィール設定</div>
+        <div class="display-name-row">
+          <label class="form-label">表示名</label>
+          <input class="form-input time-input" type="text" id="display-name-input" placeholder="名前を入力" style="width:100%">
+        </div>
+      </div>
+      <div class="settings-card">
+        <div class="settings-title">目標時間</div>
+        <div class="time-row">
+          <span class="time-icon">🌙</span>
+          <span class="time-label">目標就寝時刻</span>
+          <input class="time-input" type="time" id="goal-sleep-input" value="23:00">
+        </div>
+        <div class="time-row">
+          <span class="time-icon">☀️</span>
+          <span class="time-label">目標起床時刻</span>
+          <input class="time-input" type="time" id="goal-wake-input" value="06:00">
+        </div>
+        <button class="btn-save" onclick="saveSettings()">保存する</button>
+        <span class="save-msg" id="save-msg">✓ 保存しました！</span>
+      </div>
+    </div>
+  </div>
+</div>
 
-            const savedLogs = localStorage.getItem('shushin_logs');
-            if (savedLogs) {
-                logs = JSON.parse(savedLogs);
-            }
+<div class="toast" id="toast"></div>
 
-            // UIの初期化
-            lucide.createIcons();
-            renderUserSwitcher();
-            switchUser(activeUserId);
-            renderTimeline();
-        }
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
-        // ユーザー切り替えボタンの描画
-        function renderUserSwitcher() {
-            const switcher = document.getElementById('user-switcher');
-            switcher.innerHTML = '';
-            users.forEach(user => {
-                const btn = document.createElement('button');
-                btn.id = `switch-${user.id}`;
-                btn.className = `py-2 px-1.5 text-xs font-black rounded-xl transition-all border ${
-                    user.id === activeUserId 
-                    ? 'bg-slate-100 text-slate-950 border-white shadow-md' 
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200'
-                }`;
-                btn.innerText = user.name;
-                btn.onclick = () => switchUser(user.id);
-                switcher.appendChild(btn);
-            });
-        }
+<script>
+// ============================================================
+//  FIREBASE CONFIG
+//  ここに自分のFirebaseプロジェクトの設定を貼り付けてください
+// ============================================================
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-        // ユーザーの切り替え処理
-        function switchUser(userId) {
-            activeUserId = userId;
-            const user = users.find(u => u.id === userId);
-            
-            // 切り替えボタンのアクティブ表示変更
-            users.forEach(u => {
-                const btn = document.getElementById(`switch-${u.id}`);
-                if (btn) {
-                    if (u.id === userId) {
-                        btn.className = "py-2 px-1.5 text-xs font-black rounded-xl transition-all border bg-slate-100 text-slate-950 border-white shadow-md";
-                    } else {
-                        btn.className = "py-2 px-1.5 text-xs font-black rounded-xl transition-all border bg-slate-950 text-slate-400 border-slate-800 hover:text-slate-200";
-                    }
-                }
-            });
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-            // メイン画面の表示をこのユーザーの設定に変更
-            document.getElementById('current-user-name').innerText = user.name;
-            updateMainButtonUI(user);
-        }
+// ============================================================
+//  STATE
+// ============================================================
+let currentUser = null;
+let userProfile = null;
+let unsubTimeline = null;
 
-        // ユーザーの現在の状況（就寝報告待ち or 起床報告待ち）に合わせてボタンと目標時間の表示を切り替え
-        function updateMainButtonUI(user) {
-            const label = document.getElementById('target-label');
-            const timeDisplay = document.getElementById('target-time-display');
-            const btn = document.getElementById('action-btn');
-            const btnIcon = document.getElementById('btn-icon');
-            const btnText = document.getElementById('btn-text');
+// ============================================================
+//  AUTH
+// ============================================================
+function switchAuthTab(tab) {
+  document.getElementById('login-form').style.display = tab === 'login' ? 'block' : 'none';
+  document.getElementById('register-form').style.display = tab === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('auth-error').style.display = 'none';
+}
 
-            if (user.currentStatus === "night") {
-                // 就寝報告待ちモード
-                label.innerText = "目標就寝時間";
-                timeDisplay.innerText = user.targetSleep;
-                
-                // ボタンをシュウシン（白ベース）に
-                btn.className = "w-48 h-48 rounded-full bg-slate-100 text-slate-950 font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-slate-800 pulse-btn";
-                btnIcon.innerHTML = `<i data-lucide="moon" class="w-8 h-8 fill-current text-slate-900"></i>`;
-                btnText.innerText = "シュウシン";
-            } else {
-                // 起床報告待ちモード
-                label.innerText = "目標起床時間";
-                timeDisplay.innerText = user.targetWake;
+async function handleLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  try {
+    await auth.signInWithEmailAndPassword(email, password);
+  } catch (e) {
+    showAuthError(getFirebaseErrorMsg(e.code));
+  }
+}
 
-                // ボタンをキショウ（太陽のオレンジ/ゴールドベース）に
-                btn.className = "w-48 h-48 rounded-full bg-amber-500 text-white font-black text-2xl tracking-widest transition-all active:scale-95 shadow-2xl flex flex-col items-center justify-center gap-1 border-4 border-amber-400 pulse-btn";
-                btnIcon.innerHTML = `<i data-lucide="sun" class="w-8 h-8 fill-current text-white"></i>`;
-                btnText.innerText = "キショウ";
-            }
-            lucide.createIcons();
-        }
+async function handleRegister() {
+  const name = document.getElementById('reg-name').value.trim();
+  const email = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+  if (!name) return showAuthError('表示名を入力してください');
+  if (name.length > 20) return showAuthError('表示名は20文字以内にしてください');
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(email, password);
+    await db.collection('users').doc(cred.user.uid).set({
+      displayName: name,
+      goalSleep: '23:00',
+      goalWake: '06:00',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+  } catch (e) {
+    showAuthError(getFirebaseErrorMsg(e.code));
+  }
+}
 
-        // シュウシン・キショウの報告実行
-        function executeReport() {
-            const user = users.find(u => u.id === activeUserId);
-            const now = new Date();
-            const currentHours = now.getHours();
-            const currentMinutes = now.getMinutes();
-            const actualTimeStr = `${String(currentHours).padStart(2, '0')}:${String(currentMinutes).padStart(2, '0')}`;
+function handleLogout() {
+  if (unsubTimeline) unsubTimeline();
+  auth.signOut();
+}
 
-            let isEarly = false;
-            let targetTimeStr = "";
-            let logType = ""; // "sleep" or "wake"
+function showAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
-            if (user.currentStatus === "night") {
-                // 就寝判定
-                logType = "sleep";
-                targetTimeStr = user.targetSleep;
-                isEarly = compareTime(actualTimeStr, targetTimeStr, true); // 就寝は目標時間より「前」なら早期（赤）
-                user.currentStatus = "morning"; // 次は起床待ち
-            } else {
-                // 起床判定
-                logType = "wake";
-                targetTimeStr = user.targetWake;
-                isEarly = compareTime(actualTimeStr, targetTimeStr, false); // 起床は目標時間より「前（早起き）」なら早期（赤）
-                user.currentStatus = "night"; // 次は就寝待ち
-            }
+function getFirebaseErrorMsg(code) {
+  const map = {
+    'auth/user-not-found': 'メールアドレスが見つかりません',
+    'auth/wrong-password': 'パスワードが間違っています',
+    'auth/email-already-in-use': 'このメールアドレスは既に登録されています',
+    'auth/weak-password': 'パスワードは6文字以上必要です',
+    'auth/invalid-email': 'メールアドレスの形式が正しくありません',
+    'auth/invalid-credential': 'メールアドレスまたはパスワードが間違っています',
+  };
+  return map[code] || 'エラーが発生しました：' + code;
+}
 
-            // 新しいログオブジェクトの生成
-            const newLog = {
-                id: `log-${Date.now()}`,
-                userId: user.id,
-                userName: user.name,
-                type: logType,
-                actualTime: actualTimeStr,
-                targetTime: targetTimeStr,
-                isEarly: isEarly,
-                timestamp: Date.now()
-            };
+// ============================================================
+//  AUTH STATE OBSERVER
+// ============================================================
+auth.onAuthStateChanged(async (user) => {
+  if (user) {
+    currentUser = user;
+    await loadUserProfile();
+    showMainScreen();
+  } else {
+    currentUser = null;
+    userProfile = null;
+    showAuthScreen();
+  }
+});
 
-            // タイムラインの先頭に追加
-            logs.unshift(newLog);
+async function loadUserProfile() {
+  const doc = await db.collection('users').doc(currentUser.uid).get();
+  if (doc.exists) {
+    userProfile = doc.data();
+  } else {
+    userProfile = { displayName: 'ユーザー', goalSleep: '23:00', goalWake: '06:00' };
+  }
+}
 
-            // データの保存
-            localStorage.setItem('shushin_users', JSON.stringify(users));
-            localStorage.setItem('shushin_logs', JSON.stringify(logs));
+// ============================================================
+//  SCREEN MANAGEMENT
+// ============================================================
+function showAuthScreen() {
+  document.getElementById('auth-screen').style.display = 'flex';
+  document.getElementById('main-screen').style.display = 'none';
+  if (unsubTimeline) { unsubTimeline(); unsubTimeline = null; }
+}
 
-            // UI更新
-            updateMainButtonUI(user);
-            renderTimeline();
+function showMainScreen() {
+  document.getElementById('auth-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
 
-            // トーストで結果をお知らせ
-            showToast(
-                isEarly ? "🔴 目標時間より早いです！ナイス睡眠全力！" : "🔵 目標時間を過ぎています。次は頑張りましょう！", 
-                isEarly ? "check-circle" : "info"
-            );
-        }
+  const name = userProfile.displayName || 'ユーザー';
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-avatar').textContent = name.charAt(0);
 
-        // 時刻文字列 (HH:MM) の比較ロジック
-        // isSleep: 就寝の場合は夜間の比較を行うための特別な考慮
-        function compareTime(actual, target, isSleep) {
-            const [aH, aM] = actual.split(':').map(Number);
-            const [tH, tM] = target.split(':').map(Number);
+  document.getElementById('goal-sleep-input').value = userProfile.goalSleep || '23:00';
+  document.getElementById('goal-wake-input').value = userProfile.goalWake || '06:00';
+  document.getElementById('display-name-input').value = name;
 
-            const actualMinutes = aH * 60 + aM;
-            const targetMinutes = tH * 60 + tM;
+  updateGoalDisplay();
+  startClock();
+  updateReportButton();
+  subscribeTimeline();
+}
 
-            if (isSleep) {
-                // 就寝時：夜21時〜朝4時の範囲などを考慮
-                // 単純比較でも動きますが、深夜0時を跨ぐ場合の処理
-                // 例: 目標が 23:30 (1410分) で、実際が 00:10 (10分)。これは遅刻。
-                // 基準点として12時(720分)からどれだけ経過したかで比較すると正確になります
-                const adjustTime = (m) => (m < 720) ? m + 1440 : m; 
-                return adjustTime(actualMinutes) <= adjustTime(targetMinutes);
-            } else {
-                // 起床時：目標 06:30 に対して実際 06:10 は「早い（成功）」
-                return actualMinutes <= targetMinutes;
-            }
-        }
+// ============================================================
+//  CLOCK
+// ============================================================
+function startClock() {
+  updateClock();
+  setInterval(() => { updateClock(); updateReportButton(); }, 1000);
+}
 
-        // タイムライン（部室）の描画
-        function renderTimeline() {
-            const container = document.getElementById('timeline-container');
-            container.innerHTML = '';
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  document.getElementById('clock').textContent = h + ':' + m;
+  const days = ['日', '月', '火', '水', '木', '金', '土'];
+  document.getElementById('date-display').textContent =
+    now.getFullYear() + '年' + (now.getMonth()+1) + '月' + now.getDate() + '日（' + days[now.getDay()] + '）';
+}
 
-            if (logs.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 text-slate-500 font-bold border-2 border-dashed border-slate-800 rounded-2xl">
-                        <i data-lucide="inbox" class="w-8 h-8 mx-auto mb-2 text-slate-600"></i>
-                        今日の報告はまだありません。
-                    </div>
-                `;
-                lucide.createIcons();
-                return;
-            }
+// ============================================================
+//  REPORT BUTTON — auto night/day detection
+// ============================================================
+function isNightTime() {
+  const h = new Date().getHours();
+  // 18:00〜翌8:59 → 就寝モード
+  return h >= 18 || h < 9;
+}
 
-            logs.forEach(log => {
-                const card = document.createElement('div');
-                card.className = "bg-slate-900 border border-slate-800/80 rounded-2xl p-4 flex justify-between items-center shadow-md";
+function updateReportButton() {
+  const btn = document.getElementById('report-btn');
+  const icon = document.getElementById('btn-icon');
+  const label = document.getElementById('btn-label');
+  const sub = document.getElementById('btn-sublabel');
+  if (isNightTime()) {
+    btn.className = 'report-btn night-mode';
+    icon.textContent = '🌙';
+    label.textContent = 'シュウシン';
+    sub.textContent = 'タップして就寝報告';
+  } else {
+    btn.className = 'report-btn day-mode';
+    icon.textContent = '☀️';
+    label.textContent = 'キショウ';
+    sub.textContent = 'タップして起床報告';
+  }
+}
 
-                // 判定結果に応じたスタイル
-                const statusClass = log.isEarly ? "text-rose-500" : "text-blue-500";
-                const dotColor = log.isEarly ? "bg-rose-500" : "bg-blue-500";
-                const iconHtml = log.isEarly ? "🔴" : "🔵";
-                const actionLabel = log.type === "sleep" ? "シュウシン" : "キショウ";
+// ============================================================
+//  HANDLE REPORT
+// ============================================================
+async function handleReport() {
+  if (!currentUser || !userProfile) return;
+  const now = new Date();
+  const type = isNightTime() ? 'sleep' : 'wake';
+  const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
+  const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
 
-                card.innerHTML = `
-                    <div class="flex flex-col gap-1">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full ${dotColor}"></span>
-                            <span class="font-black text-sm text-slate-100">${escapeHtml(log.userName)}</span>
-                        </div>
-                        <div class="text-[11px] font-bold text-slate-500">
-                            目標 ${log.targetTime} | 実際 <span class="text-slate-300 font-black">${log.actualTime}</span>
-                        </div>
-                    </div>
-                    <div class="text-right flex flex-col items-end">
-                        <span class="text-lg font-black tracking-wider ${statusClass}">
-                            ${iconHtml}${actionLabel}
-                        </span>
-                        <span class="text-[9px] text-slate-600 font-bold">${formatDate(log.timestamp)}</span>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-            lucide.createIcons();
-        }
+  const logData = {
+    uid: currentUser.uid,
+    displayName: userProfile.displayName || 'ユーザー',
+    type,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    isOnTime,
+    goalTime: goalTime || null,
+    localTime: now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0')
+  };
 
-        // 設定モーダルの表示・非表示
-        function toggleSettingsModal() {
-            const modal = document.getElementById('settings-modal');
-            const user = users.find(u => u.id === activeUserId);
-            
-            if (modal.classList.contains('hidden')) {
-                // 開くときに現在の設定値をインプットにセット
-                document.getElementById('input-name').value = user.name;
-                document.getElementById('input-sleep').value = user.targetSleep;
-                document.getElementById('input-wake').value = user.targetWake;
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
+  try {
+    await db.collection('logs').add(logData);
+    showReportResult(type, isOnTime);
+    showToast('報告を送信しました！');
+  } catch (e) {
+    showToast('エラー：' + e.message);
+  }
+}
 
-        // 設定の保存
-        function saveSettings() {
-            const name = document.getElementById('input-name').value.trim();
-            const sleep = document.getElementById('input-sleep').value;
-            const wake = document.getElementById('input-wake').value;
+function checkOnTime(now, goalStr, type) {
+  const [gh, gm] = goalStr.split(':').map(Number);
+  const goalMinutes = gh * 60 + gm;
+  const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-            if (!name || !sleep || !wake) {
-                showToast("すべての項目を入力してください！", "alert-triangle");
-                return;
-            }
+  if (type === 'sleep') {
+    // 就寝：今が目標より前（early）なら達成
+    // 夜をまたぐ処理：例えば、目標23:00、現在22:30は達成
+    // ただし深夜0時を超えた場合（例：0:30）は遅刻
+    const adjNow = now.getHours() < 12 ? nowMinutes + 1440 : nowMinutes;
+    const adjGoal = gh < 12 ? goalMinutes + 1440 : goalMinutes;
+    return adjNow <= adjGoal;
+  } else {
+    // 起床：今が目標より前（early）なら達成
+    return nowMinutes <= goalMinutes;
+  }
+}
 
-            const userIndex = users.findIndex(u => u.id === activeUserId);
-            users[userIndex].name = name;
-            users[userIndex].targetSleep = sleep;
-            users[userIndex].targetWake = wake;
+function showReportResult(type, isOnTime) {
+  const el = document.getElementById('report-result');
+  if (isOnTime === null) {
+    el.style.display = 'none';
+    return;
+  }
+  if (isOnTime) {
+    el.className = 'report-result success';
+    el.textContent = '🔴 目標達成！全力' + (type === 'sleep' ? '睡眠' : '起床') + '！';
+  } else {
+    el.className = 'report-result late';
+    el.textContent = '🔵 次は全力！ファイト！';
+  }
+  el.style.display = 'block';
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
 
-            // ローカルストレージに保存
-            localStorage.setItem('shushin_users', JSON.stringify(users));
+// ============================================================
+//  TIMELINE — realtime listener
+// ============================================================
+function subscribeTimeline() {
+  if (unsubTimeline) unsubTimeline();
+  const list = document.getElementById('timeline-list');
+  list.innerHTML = '<div class="loading">読み込み中…</div>';
 
-            // 表示の更新
-            renderUserSwitcher();
-            switchUser(activeUserId);
-            renderTimeline(); // 過去のログの表示名も更新されるように再描画
-            toggleSettingsModal();
+  unsubTimeline = db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(50)
+    .onSnapshot((snapshot) => {
+      if (snapshot.empty) {
+        list.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
+        return;
+      }
+      list.innerHTML = '';
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        list.appendChild(renderLogItem(d));
+      });
+    }, (err) => {
+      list.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+    });
+}
 
-            showToast("目標設定を更新しました！", "check");
-        }
+function renderLogItem(d) {
+  const div = document.createElement('div');
+  div.className = 'log-item';
 
-        // タイムラインログの全消去
-        function clearAllLogs() {
-            if (confirm("これまでの全力睡眠の全記録を消去します。よろしいですか？")) {
-                logs = [];
-                localStorage.removeItem('shushin_logs');
-                renderTimeline();
-                showToast("すべての記録を消去しました。", "trash-2");
-            }
-        }
+  const icon = d.type === 'sleep' ? '🌙' : '☀️';
+  const actionText = d.type === 'sleep' ? '就寝を報告' : '起床を報告';
+  let timeStr = d.localTime || '';
+  if (d.timestamp && d.timestamp.toDate) {
+    const t = d.timestamp.toDate();
+    timeStr = t.getMonth()+1 + '/' + t.getDate() + ' ' + t.getHours() + ':' + String(t.getMinutes()).padStart(2,'0');
+  }
 
-        // 日時フォーマット用
-        function formatDate(timestamp) {
-            const d = new Date(timestamp);
-            return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-        }
+  let badge = '';
+  if (d.isOnTime === true) {
+    badge = '<span class="log-badge badge-success">🔴 達成</span>';
+  } else if (d.isOnTime === false) {
+    badge = '<span class="log-badge badge-late">🔵 次頑張</span>';
+  }
 
-        // トースト通知の表示
-        function showToast(message, iconName) {
-            const toast = document.getElementById('toast');
-            const iconSpan = document.getElementById('toast-icon');
-            const messageSpan = document.getElementById('toast-message');
+  div.innerHTML = `
+    <span class="log-icon">${icon}</span>
+    <div class="log-body">
+      <div class="log-user">${escapeHtml(d.displayName || 'ユーザー')}</div>
+      <div class="log-action">${actionText}${d.goalTime ? '　目標：' + d.goalTime : ''}</div>
+      <div class="log-time">${timeStr}</div>
+    </div>
+    ${badge}
+  `;
+  return div;
+}
 
-            iconSpan.innerHTML = `<i data-lucide="${iconName}" class="w-4 h-4 text-emerald-400"></i>`;
-            messageSpan.innerText = message;
-            lucide.createIcons();
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-            toast.classList.remove('opacity-0', 'pointer-events-none');
-            toast.classList.add('opacity-100');
+// ============================================================
+//  SETTINGS
+// ============================================================
+function updateGoalDisplay() {
+  document.getElementById('goal-sleep-display').textContent = userProfile.goalSleep || '未設定';
+  document.getElementById('goal-wake-display').textContent = userProfile.goalWake || '未設定';
+}
 
-            setTimeout(() => {
-                toast.classList.remove('opacity-100');
-                toast.classList.add('opacity-0', 'pointer-events-none');
-            }, 3000);
-        }
+async function saveSettings() {
+  if (!currentUser) return;
+  const name = document.getElementById('display-name-input').value.trim();
+  const goalSleep = document.getElementById('goal-sleep-input').value;
+  const goalWake = document.getElementById('goal-wake-input').value;
+  if (!name) return showToast('表示名を入力してください');
 
-        // HTMLエスケープ（セキュリティ対策）
-        function escapeHtml(str) {
-            return str.replace(/&/g, '&amp;')
-                      .replace(/</g, '&lt;')
-                      .replace(/>/g, '&gt;')
-                      .replace(/"/g, '&quot;')
-                      .replace(/'/g, '&#039;');
-        }
-    </script>
+  await db.collection('users').doc(currentUser.uid).set({
+    displayName: name,
+    goalSleep,
+    goalWake
+  }, { merge: true });
+
+  userProfile = { ...userProfile, displayName: name, goalSleep, goalWake };
+  document.getElementById('user-name-display').textContent = name;
+  document.getElementById('user-avatar').textContent = name.charAt(0);
+  updateGoalDisplay();
+
+  const msg = document.getElementById('save-msg');
+  msg.style.display = 'inline';
+  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+}
+
+// ============================================================
+//  TAB NAVIGATION
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+</script>
 </body>
 </html>
