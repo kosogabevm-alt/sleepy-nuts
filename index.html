@@ -519,6 +519,27 @@
   .card-time-value.sleeping { color: #90b8ff; }
   .card-time-value.awake    { color: #f5c842; }
 
+  /* カード：達成バッジ */
+  .card-achieve-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.28rem 0.6rem;
+    border-radius: 20px;
+    margin-top: 0.25rem;
+    letter-spacing: 0.03em;
+  }
+  .card-achieve-badge.achieved {
+    background: rgba(67,233,123,0.15);
+    color: #43e97b;
+    border: 1px solid rgba(67,233,123,0.35);
+  }
+  .card-achieve-badge.missed {
+    background: rgba(79,172,254,0.15);
+    color: #4facfe;
+    border: 1px solid rgba(79,172,254,0.35);
+  }
+
   /* ===== HISTORY LOG ===== */
   .timeline-header {
     display: flex;
@@ -549,46 +570,9 @@
     50% { opacity: 0.3; }
   }
 
-  .log-item {
-    display: flex;
-    gap: 1rem;
-    padding: 0.85rem 1rem;
-    background: var(--night-2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    margin-bottom: 0.6rem;
-    animation: slideIn 0.35s ease;
-  }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(-8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
-  }
-  .log-icon { font-size: 1.6rem; flex-shrink: 0; }
-  .log-body { flex: 1; min-width: 0; }
-  .log-user { font-weight: 700; font-size: 0.9rem; }
-  .log-action { font-size: 0.8rem; color: var(--text-2); margin-top: 0.1rem; }
-  .log-time { font-size: 0.72rem; color: var(--text-2); margin-top: 0.15rem; }
-  .log-badge {
-    align-self: center;
-    font-size: 0.68rem;
-    font-weight: 700;
-    padding: 0.22rem 0.45rem;
-    border-radius: 6px;
-    flex-shrink: 0;
-  }
-  .badge-success {
-    background: rgba(67,233,123,0.15);
-    color: var(--green);
-    border: 1px solid rgba(67,233,123,0.3);
-  }
-  .badge-late {
-    background: rgba(79,172,254,0.15);
-    color: var(--blue);
-    border: 1px solid rgba(79,172,254,0.3);
   }
   .empty-timeline {
     text-align: center;
@@ -721,13 +705,6 @@
       <div id="status-grid" class="status-grid">
         <div class="loading" style="grid-column:1/-1">読み込み中…</div>
       </div>
-
-      <!-- 履歴ログ -->
-      <div class="timeline-header">
-        <div class="timeline-section-label" style="flex:1;margin-bottom:0">最近のログ</div>
-        <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-      </div>
-      <div id="timeline-list"></div>
     </div>
 
     <div class="tab-content" id="tab-settings">
@@ -1092,46 +1069,30 @@ function showReportResult(type, isOnTime) {
 function subscribeTimeline() {
   if (unsubTimeline) unsubTimeline();
 
-  const logList = document.getElementById('timeline-list');
   const grid = document.getElementById('status-grid');
-
-  logList.innerHTML = '';
   grid.innerHTML = '<div class="loading" style="grid-column:1/-1">読み込み中…</div>';
 
   unsubTimeline = db.collection('logs')
     .orderBy('timestamp', 'desc')
     .limit(50)
     .onSnapshot((snapshot) => {
-      // ── ① ユーザーごとに最新1件のみ抽出 ──
       userStatusMap.clear();
       snapshot.forEach((doc) => {
         const d = doc.data();
         if (!d.uid) return;
-        // orderBy('timestamp','desc') なので最初に出たものが最新
         if (!userStatusMap.has(d.uid)) {
           userStatusMap.set(d.uid, {
             uid: d.uid,
             displayName: d.displayName || 'ユーザー',
-            type: d.type,         // 'sleep' or 'wake'
+            type: d.type,
             localTime: d.localTime || '',
-            timestamp: d.timestamp
+            timestamp: d.timestamp,
+            isOnTime: d.isOnTime ?? null,
+            goalTime: d.goalTime || null
           });
         }
       });
-
-      // ── ② ステータスグリッドを再描画 ──
       renderStatusGrid();
-
-      // ── ③ 履歴ログを再描画 ──
-      if (snapshot.empty) {
-        logList.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
-        return;
-      }
-      logList.innerHTML = '';
-      snapshot.forEach((doc) => {
-        const d = doc.data();
-        logList.appendChild(renderLogItem(d));
-      });
     }, (err) => {
       console.error(err);
       grid.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
@@ -1167,11 +1128,19 @@ function renderStatusCard(u) {
   const timeLabel  = isSleeping ? 'シュウシン' : 'キショウ';
   const timeIcon   = isSleeping ? '🌙' : '☀️';
 
-  // 表示時刻：localTime がなければ timestamp から生成
+  // 表示時刻
   let displayTime = u.localTime || '';
   if (!displayTime && u.timestamp && u.timestamp.toDate) {
     const t = u.timestamp.toDate();
     displayTime = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+  }
+
+  // 達成バッジ
+  let achievementBadge = '';
+  if (u.isOnTime === true) {
+    achievementBadge = '<span class="card-achieve-badge achieved">🔴 目標達成</span>';
+  } else if (u.isOnTime === false) {
+    achievementBadge = '<span class="card-achieve-badge missed">🔵 次頑張ろう</span>';
   }
 
   const card = document.createElement('div');
@@ -1192,41 +1161,9 @@ function renderStatusCard(u) {
       <span class="card-time-label">${timeLabel}</span>
       <span class="card-time-value ${stateClass}">${escapeHtml(displayTime)}</span>
     </div>
+    ${achievementBadge}
   `;
   return card;
-}
-
-// ── 履歴ログアイテム ──
-function renderLogItem(d) {
-  const div = document.createElement('div');
-  div.className = 'log-item';
-
-  const icon = d.type === 'sleep' ? '🌙' : '☀️';
-  const actionText = d.type === 'sleep' ? '就寝を報告' : '起床を報告';
-  let timeStr = d.localTime || '';
-  if (d.timestamp && d.timestamp.toDate) {
-    const t = d.timestamp.toDate();
-    timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' +
-              String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
-  }
-
-  let badge = '';
-  if (d.isOnTime === true) {
-    badge = '<span class="log-badge badge-success">🔴 達成</span>';
-  } else if (d.isOnTime === false) {
-    badge = '<span class="log-badge badge-late">🔵 次頑張</span>';
-  }
-
-  div.innerHTML = `
-    <span class="log-icon">${icon}</span>
-    <div class="log-body">
-      <div class="log-user">${escapeHtml(d.displayName || 'ユーザー')}</div>
-      <div class="log-action">${actionText}${d.goalTime ? '　目標：' + d.goalTime : ''}</div>
-      <div class="log-time">${timeStr}</div>
-    </div>
-    ${badge}
-  `;
-  return div;
 }
 
 function escapeHtml(s) {
