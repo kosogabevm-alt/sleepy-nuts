@@ -257,7 +257,6 @@
     margin-top: 0.25rem;
   }
 
-  /* The big button */
   .report-btn-wrap {
     display: flex;
     flex-direction: column;
@@ -375,17 +374,157 @@
     display: none;
   }
 
-  /* ===== TIMELINE ===== */
+  /* ===== TIMELINE TAB ===== */
+  .timeline-section-label {
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-2);
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .timeline-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ===== USER STATUS GRID ===== */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem;
+    margin-bottom: 2rem;
+  }
+  @media (min-width: 480px) {
+    .status-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  .status-card {
+    border-radius: var(--radius);
+    padding: 1rem 0.9rem 0.9rem;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    animation: fadeIn 0.4s ease;
+  }
+  .status-card:hover { transform: translateY(-2px); }
+
+  /* 睡眠中カード */
+  .status-card.sleeping {
+    background: linear-gradient(145deg, #0d1a35 0%, #111f3d 100%);
+    border-color: rgba(79, 130, 255, 0.25);
+    box-shadow: 0 0 18px rgba(79,130,255,0.1), inset 0 0 20px rgba(79,130,255,0.04);
+  }
+  /* 起床中カード */
+  .status-card.awake {
+    background: linear-gradient(145deg, #1f1200 0%, #2a1800 100%);
+    border-color: rgba(245,168,35,0.25);
+    box-shadow: 0 0 18px rgba(245,168,35,0.1), inset 0 0 20px rgba(245,168,35,0.04);
+  }
+
+  /* カード：状態バッジ行 */
+  .card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .card-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 20px;
+  }
+  .card-status-badge.sleeping {
+    background: rgba(79,130,255,0.15);
+    color: #7ab0ff;
+    border: 1px solid rgba(79,130,255,0.3);
+  }
+  .card-status-badge.awake {
+    background: rgba(245,168,35,0.15);
+    color: #f5c842;
+    border: 1px solid rgba(245,168,35,0.3);
+  }
+  .status-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-dot.sleeping { background: #7ab0ff; animation: pulse 2s infinite; }
+  .status-dot.awake    { background: #f5c842; animation: pulse 2s infinite; }
+
+  /* カード：アバター & 名前 */
+  .card-avatar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.2rem;
+  }
+  .card-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 900;
+    flex-shrink: 0;
+  }
+  .card-avatar.sleeping {
+    background: linear-gradient(135deg, #1e3a6e, #0a1f4e);
+    border: 1.5px solid rgba(79,130,255,0.4);
+    color: #a0c0ff;
+  }
+  .card-avatar.awake {
+    background: linear-gradient(135deg, #5c3300, #3a2000);
+    border: 1.5px solid rgba(245,168,35,0.4);
+    color: #f5c842;
+  }
+  .card-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* カード：時刻表示 */
+  .card-time-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+  }
+  .card-time-icon { font-size: 0.85rem; }
+  .card-time-label { font-size: 0.72rem; color: var(--text-2); }
+  .card-time-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.35rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .card-time-value.sleeping { color: #90b8ff; }
+  .card-time-value.awake    { color: #f5c842; }
+
+  /* ===== HISTORY LOG ===== */
   .timeline-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 1.25rem;
-  }
-  .timeline-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--moon);
+    margin-bottom: 1rem;
   }
   .live-badge {
     display: flex;
@@ -413,11 +552,11 @@
   .log-item {
     display: flex;
     gap: 1rem;
-    padding: 1rem;
+    padding: 0.85rem 1rem;
     background: var(--night-2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.6rem;
     animation: slideIn 0.35s ease;
   }
   @keyframes slideIn {
@@ -428,16 +567,16 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
-  .log-icon { font-size: 1.8rem; flex-shrink: 0; }
-  .log-body { flex: 1; }
-  .log-user { font-weight: 700; font-size: 0.95rem; }
-  .log-action { font-size: 0.85rem; color: var(--text-2); margin-top: 0.1rem; }
-  .log-time { font-size: 0.75rem; color: var(--text-2); }
+  .log-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .log-body { flex: 1; min-width: 0; }
+  .log-user { font-weight: 700; font-size: 0.9rem; }
+  .log-action { font-size: 0.8rem; color: var(--text-2); margin-top: 0.1rem; }
+  .log-time { font-size: 0.72rem; color: var(--text-2); margin-top: 0.15rem; }
   .log-badge {
     align-self: center;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    padding: 0.25rem 0.5rem;
+    padding: 0.22rem 0.45rem;
     border-radius: 6px;
     flex-shrink: 0;
   }
@@ -459,7 +598,6 @@
   }
   .empty-timeline .big { font-size: 2.5rem; margin-bottom: 0.5rem; }
 
-  /* Loading */
   .loading {
     display: flex;
     align-items: center;
@@ -549,9 +687,9 @@
     </div>
 
     <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('report')">📋 報告</button>
-      <button class="tab-btn" onclick="switchTab('timeline')">👥 タイムライン</button>
-      <button class="tab-btn" onclick="switchTab('settings')">⚙️ 設定</button>
+      <button class="tab-btn active" onclick="switchTab('report', this)">📋 報告</button>
+      <button class="tab-btn" onclick="switchTab('timeline', this)">👥 メンバー</button>
+      <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 設定</button>
     </div>
 
     <div class="tab-content active" id="tab-report">
@@ -578,13 +716,18 @@
     </div>
 
     <div class="tab-content" id="tab-timeline">
+      <!-- ユーザーステータスグリッド -->
+      <div class="timeline-section-label">メンバーの現在状態</div>
+      <div id="status-grid" class="status-grid">
+        <div class="loading" style="grid-column:1/-1">読み込み中…</div>
+      </div>
+
+      <!-- 履歴ログ -->
       <div class="timeline-header">
-        <div class="timeline-title">チームのリアルタイムログ</div>
+        <div class="timeline-section-label" style="flex:1;margin-bottom:0">最近のログ</div>
         <div class="live-badge"><div class="live-dot"></div>LIVE</div>
       </div>
-      <div id="timeline-list">
-        <div class="loading">読み込み中…</div>
-      </div>
+      <div id="timeline-list"></div>
     </div>
 
     <div class="tab-content" id="tab-settings">
@@ -616,13 +759,53 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<!-- Firebase SDK: まず gstatic を試み、失敗したら unpkg にフォールバック -->
+<script>
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  const FB_VER = '10.12.0';
+  const PKGS = ['firebase-app-compat', 'firebase-auth-compat', 'firebase-firestore-compat'];
+
+  async function loadFirebase() {
+    // 1st attempt: gstatic (公式CDN)
+    try {
+      for (const pkg of PKGS) {
+        await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/${pkg}.js`);
+      }
+      return true;
+    } catch (_) {}
+    // 2nd attempt: unpkg
+    try {
+      for (const pkg of PKGS) {
+        await loadScript(`https://unpkg.com/${pkg}@${FB_VER}/dist/${pkg}.js`);
+      }
+      return true;
+    } catch (_) {}
+    // 3rd attempt: jsdelivr
+    try {
+      for (const pkg of PKGS) {
+        await loadScript(`https://cdn.jsdelivr.net/npm/${pkg}@${FB_VER}/dist/${pkg}.min.js`);
+      }
+      return true;
+    } catch (_) {}
+    return false;
+  }
+
+  window.__firebaseReady = loadFirebase();
+</script>
 
 <script>
 // ============================================================
-//  FIREBASE CONFIG (巧さんの正しい設定を埋め込み済み)
+//  FIREBASE CONFIG & INIT
+//  — window.onload でラップし、CDN読み込み完了を保証する
 // ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
@@ -633,9 +816,25 @@ const firebaseConfig = {
   appId: "1:45736862470:web:780336e12ecfcda222f487"
 };
 
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+// グローバル参照（onload 後に代入）
+let auth, db;
+
+window.__firebaseReady.then((loaded) => {
+  if (!loaded || typeof firebase === 'undefined') {
+    document.body.innerHTML = '<div style="color:#ff4d6d;padding:2rem;font-family:sans-serif;line-height:1.8">'
+      + '⚠️ Firebase SDKの読み込みに失敗しました。<br>'
+      + '以下をお試しください：<br>'
+      + '① ページを再読み込み（Ctrl+R / Cmd+R）<br>'
+      + '② ブラウザのキャッシュをクリア<br>'
+      + '③ 広告ブロッカーを一時的にオフ</div>';
+    return;
+  }
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+  // 認証状態の監視を開始
+  auth.onAuthStateChanged(onAuthStateChanged_handler);
+});
 
 // ============================================================
 //  STATE
@@ -644,6 +843,9 @@ let currentUser = null;
 let userProfile = null;
 let unsubTimeline = null;
 let lastReportType = null; // 'sleep' or 'wake'
+
+// ユーザーごとの最新ステータスを保持するMap: uid → { displayName, type, localTime, timestamp }
+const userStatusMap = new Map();
 
 // ============================================================
 //  AUTH
@@ -678,7 +880,7 @@ async function handleRegister() {
       displayName: name,
       goalSleep: '23:00',
       goalWake: '06:00',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()  // firebase はこの時点でロード済み
     });
   } catch (e) {
     showAuthError(getFirebaseErrorMsg(e.code));
@@ -711,7 +913,7 @@ function getFirebaseErrorMsg(code) {
 // ============================================================
 //  AUTH STATE OBSERVER
 // ============================================================
-auth.onAuthStateChanged(async (user) => {
+async function onAuthStateChanged_handler(user) {
   if (user) {
     currentUser = user;
     await loadUserProfile();
@@ -721,9 +923,10 @@ auth.onAuthStateChanged(async (user) => {
     currentUser = null;
     userProfile = null;
     lastReportType = null;
+    userStatusMap.clear();
     showAuthScreen();
   }
-});
+}
 
 async function loadUserProfile() {
   const doc = await db.collection('users').doc(currentUser.uid).get();
@@ -741,12 +944,12 @@ async function fetchLastReportType() {
       .orderBy('timestamp', 'desc')
       .limit(1)
       .get();
-    
+
     if (!snapshot.empty) {
       lastReportType = snapshot.docs[0].data().type;
     } else {
       const h = new Date().getHours();
-      lastReportType = (h >= 18 || h < 9) ? 'wake' : 'sleep'; 
+      lastReportType = (h >= 18 || h < 9) ? 'wake' : 'sleep';
     }
   } catch (e) {
     console.error(e);
@@ -786,7 +989,7 @@ function showMainScreen() {
 // ============================================================
 function startClock() {
   updateClock();
-  setInterval(() => { updateClock(); }, 1000);
+  setInterval(updateClock, 1000);
 }
 
 function updateClock() {
@@ -800,7 +1003,7 @@ function updateClock() {
 }
 
 // ============================================================
-//  REPORT BUTTON (交互に切り替える)
+//  REPORT BUTTON
 // ============================================================
 function updateReportButton() {
   const btn = document.getElementById('report-btn');
@@ -827,27 +1030,27 @@ function updateReportButton() {
 async function handleReport() {
   if (!currentUser || !userProfile) return;
   const now = new Date();
-  
+
   const type = (lastReportType === 'wake') ? 'sleep' : 'wake';
   const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
   const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
+
+  const localTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
 
   const logData = {
     uid: currentUser.uid,
     displayName: userProfile.displayName || 'ユーザー',
     type,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),  // firebase はロード済み
     isOnTime,
     goalTime: goalTime || null,
-    localTime: now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0')
+    localTime
   };
 
   try {
     await db.collection('logs').add(logData);
-    
     lastReportType = type;
     updateReportButton();
-    
     showReportResult(type, isOnTime);
     showToast('報告を送信しました！');
   } catch (e) {
@@ -871,10 +1074,7 @@ function checkOnTime(now, goalStr, type) {
 
 function showReportResult(type, isOnTime) {
   const el = document.getElementById('report-result');
-  if (isOnTime === null) {
-    el.style.display = 'none';
-    return;
-  }
+  if (isOnTime === null) { el.style.display = 'none'; return; }
   if (isOnTime) {
     el.className = 'report-result success';
     el.textContent = '🔴 目標達成！全力' + (type === 'sleep' ? '睡眠' : '起床') + '！';
@@ -887,31 +1087,116 @@ function showReportResult(type, isOnTime) {
 }
 
 // ============================================================
-//  TIMELINE
+//  TIMELINE + STATUS GRID (リアルタイム購読)
 // ============================================================
 function subscribeTimeline() {
   if (unsubTimeline) unsubTimeline();
-  const list = document.getElementById('timeline-list');
-  list.innerHTML = '<div class="loading">読み込み中…</div>';
+
+  const logList = document.getElementById('timeline-list');
+  const grid = document.getElementById('status-grid');
+
+  logList.innerHTML = '';
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1">読み込み中…</div>';
 
   unsubTimeline = db.collection('logs')
     .orderBy('timestamp', 'desc')
     .limit(50)
     .onSnapshot((snapshot) => {
-      if (snapshot.empty) {
-        list.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
-        return;
-      }
-      list.innerHTML = '';
+      // ── ① ユーザーごとに最新1件のみ抽出 ──
+      userStatusMap.clear();
       snapshot.forEach((doc) => {
         const d = doc.data();
-        list.appendChild(renderLogItem(d));
+        if (!d.uid) return;
+        // orderBy('timestamp','desc') なので最初に出たものが最新
+        if (!userStatusMap.has(d.uid)) {
+          userStatusMap.set(d.uid, {
+            uid: d.uid,
+            displayName: d.displayName || 'ユーザー',
+            type: d.type,         // 'sleep' or 'wake'
+            localTime: d.localTime || '',
+            timestamp: d.timestamp
+          });
+        }
+      });
+
+      // ── ② ステータスグリッドを再描画 ──
+      renderStatusGrid();
+
+      // ── ③ 履歴ログを再描画 ──
+      if (snapshot.empty) {
+        logList.innerHTML = '<div class="empty-timeline"><div class="big">💤</div>まだ報告がありません<br>最初に報告してみよう！</div>';
+        return;
+      }
+      logList.innerHTML = '';
+      snapshot.forEach((doc) => {
+        const d = doc.data();
+        logList.appendChild(renderLogItem(d));
       });
     }, (err) => {
-      list.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+      console.error(err);
+      grid.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
     });
 }
 
+// ── ステータスグリッド描画 ──
+function renderStatusGrid() {
+  const grid = document.getElementById('status-grid');
+  grid.innerHTML = '';
+
+  if (userStatusMap.size === 0) {
+    grid.innerHTML = '<div class="empty-timeline" style="grid-column:1/-1"><div class="big">💤</div>まだ報告がありません</div>';
+    return;
+  }
+
+  // 睡眠中を先に、次に起床中
+  const entries = Array.from(userStatusMap.values());
+  entries.sort((a, b) => {
+    if (a.type === b.type) return 0;
+    return a.type === 'sleep' ? -1 : 1;
+  });
+
+  entries.forEach((u) => {
+    grid.appendChild(renderStatusCard(u));
+  });
+}
+
+function renderStatusCard(u) {
+  const isSleeping = u.type === 'sleep';
+  const stateClass = isSleeping ? 'sleeping' : 'awake';
+  const badgeLabel = isSleeping ? '睡眠中' : '起床中';
+  const timeLabel  = isSleeping ? 'シュウシン' : 'キショウ';
+  const timeIcon   = isSleeping ? '🌙' : '☀️';
+
+  // 表示時刻：localTime がなければ timestamp から生成
+  let displayTime = u.localTime || '';
+  if (!displayTime && u.timestamp && u.timestamp.toDate) {
+    const t = u.timestamp.toDate();
+    displayTime = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+  }
+
+  const card = document.createElement('div');
+  card.className = `status-card ${stateClass}`;
+  card.innerHTML = `
+    <div class="card-top">
+      <span class="card-status-badge ${stateClass}">
+        <span class="status-dot ${stateClass}"></span>
+        ${badgeLabel}
+      </span>
+    </div>
+    <div class="card-avatar-row">
+      <div class="card-avatar ${stateClass}">${escapeHtml(u.displayName.charAt(0))}</div>
+      <span class="card-name">${escapeHtml(u.displayName)}</span>
+    </div>
+    <div class="card-time-row">
+      <span class="card-time-icon">${timeIcon}</span>
+      <span class="card-time-label">${timeLabel}</span>
+      <span class="card-time-value ${stateClass}">${escapeHtml(displayTime)}</span>
+    </div>
+  `;
+  return card;
+}
+
+// ── 履歴ログアイテム ──
 function renderLogItem(d) {
   const div = document.createElement('div');
   div.className = 'log-item';
@@ -921,7 +1206,8 @@ function renderLogItem(d) {
   let timeStr = d.localTime || '';
   if (d.timestamp && d.timestamp.toDate) {
     const t = d.timestamp.toDate();
-    timeStr = t.getMonth()+1 + '/' + t.getDate() + ' ' + t.getHours() + ':' + String(t.getMinutes()).padStart(2,'0');
+    timeStr = (t.getMonth()+1) + '/' + t.getDate() + ' ' +
+              String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
   }
 
   let badge = '';
@@ -944,7 +1230,11 @@ function renderLogItem(d) {
 }
 
 function escapeHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
 }
 
 // ============================================================
@@ -981,13 +1271,11 @@ async function saveSettings() {
 // ============================================================
 //  TAB NAVIGATION
 // ============================================================
-function switchTab(name) {
+function switchTab(name, btnEl) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
   document.getElementById('tab-' + name).classList.add('active');
-  if (event && event.target) {
-    event.target.classList.add('active');
-  }
+  if (btnEl) btnEl.classList.add('active');
 }
 
 // ============================================================
