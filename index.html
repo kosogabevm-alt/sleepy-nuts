@@ -33,7 +33,6 @@
     overflow-x: hidden;
   }
 
-  /* Stars background */
   body::before {
     content: '';
     position: fixed;
@@ -417,20 +416,17 @@
   }
   .status-card:hover { transform: translateY(-2px); }
 
-  /* 睡眠中カード */
   .status-card.sleeping {
     background: linear-gradient(145deg, #0d1a35 0%, #111f3d 100%);
     border-color: rgba(79, 130, 255, 0.25);
     box-shadow: 0 0 18px rgba(79,130,255,0.1), inset 0 0 20px rgba(79,130,255,0.04);
   }
-  /* 起床中カード */
   .status-card.awake {
     background: linear-gradient(145deg, #1f1200 0%, #2a1800 100%);
     border-color: rgba(245,168,35,0.25);
     box-shadow: 0 0 18px rgba(245,168,35,0.1), inset 0 0 20px rgba(245,168,35,0.04);
   }
 
-  /* カード：状態バッジ行 */
   .card-top {
     display: flex;
     align-items: center;
@@ -465,7 +461,6 @@
   .status-dot.sleeping { background: #7ab0ff; animation: pulse 2s infinite; }
   .status-dot.awake    { background: #f5c842; animation: pulse 2s infinite; }
 
-  /* カード：アバター & 名前 */
   .card-avatar-row {
     display: flex;
     align-items: center;
@@ -501,12 +496,22 @@
     text-overflow: ellipsis;
   }
 
-  /* カード：時刻表示 */
-  .card-time-row {
+  /* カード：日時表示（NEW） */
+  .card-datetime-block {
+    margin-top: 0.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+  .card-date-label {
+    font-size: 0.68rem;
+    color: var(--text-2);
+    letter-spacing: 0.04em;
+  }
+  .card-datetime-row {
     display: flex;
     align-items: baseline;
     gap: 0.4rem;
-    margin-top: 0.2rem;
   }
   .card-time-icon { font-size: 0.85rem; }
   .card-time-label { font-size: 0.72rem; color: var(--text-2); }
@@ -538,6 +543,72 @@
     background: rgba(79,172,254,0.15);
     color: #4facfe;
     border: 1px solid rgba(79,172,254,0.35);
+  }
+
+  /* ===== 目標一覧テーブル (NEW) ===== */
+  .goals-table-wrap {
+    margin-top: 0.5rem;
+  }
+  .goals-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .goals-table thead tr th {
+    font-size: 0.72rem;
+    color: var(--text-2);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.4rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+  .goals-table tbody tr {
+    border-bottom: 1px solid rgba(200,216,248,0.05);
+    transition: background 0.15s;
+  }
+  .goals-table tbody tr:last-child { border-bottom: none; }
+  .goals-table tbody tr:hover { background: rgba(255,255,255,0.03); }
+  .goals-table td {
+    padding: 0.65rem 0.75rem;
+    font-size: 0.88rem;
+    vertical-align: middle;
+  }
+  .gt-name {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .gt-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--night-3), var(--night-4));
+    border: 1px solid var(--moon-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--moon);
+    flex-shrink: 0;
+  }
+  .gt-time {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    letter-spacing: 0.05em;
+  }
+  .gt-time.sleep { color: #90b8ff; }
+  .gt-time.wake  { color: #f5c842; }
+  .gt-unset {
+    color: var(--text-2);
+    font-size: 0.8rem;
+  }
+  .goals-empty {
+    text-align: center;
+    color: var(--text-2);
+    font-size: 0.85rem;
+    padding: 1.5rem 0 0.5rem;
   }
 
   /* ===== HISTORY LOG ===== */
@@ -700,10 +771,27 @@
     </div>
 
     <div class="tab-content" id="tab-timeline">
-      <!-- ユーザーステータスグリッド -->
+      <!-- メンバーステータスグリッド -->
       <div class="timeline-section-label">メンバーの現在状態</div>
       <div id="status-grid" class="status-grid">
         <div class="loading" style="grid-column:1/-1">読み込み中…</div>
+      </div>
+
+      <!-- 目標時間一覧（NEW） -->
+      <div class="timeline-section-label" style="margin-top:0.5rem">メンバーの目標時間</div>
+      <div class="settings-card goals-table-wrap">
+        <table class="goals-table">
+          <thead>
+            <tr>
+              <th>名前</th>
+              <th>🌙 就寝目標</th>
+              <th>☀️ 起床目標</th>
+            </tr>
+          </thead>
+          <tbody id="goals-table-body">
+            <tr><td colspan="3"><div class="goals-empty">読み込み中…</div></td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
 
@@ -736,7 +824,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase SDK: まず gstatic を試み、失敗したら unpkg にフォールバック -->
 <script>
   function loadScript(src) {
     return new Promise((resolve, reject) => {
@@ -752,21 +839,18 @@
   const PKGS = ['firebase-app-compat', 'firebase-auth-compat', 'firebase-firestore-compat'];
 
   async function loadFirebase() {
-    // 1st attempt: gstatic (公式CDN)
     try {
       for (const pkg of PKGS) {
         await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/${pkg}.js`);
       }
       return true;
     } catch (_) {}
-    // 2nd attempt: unpkg
     try {
       for (const pkg of PKGS) {
         await loadScript(`https://unpkg.com/${pkg}@${FB_VER}/dist/${pkg}.js`);
       }
       return true;
     } catch (_) {}
-    // 3rd attempt: jsdelivr
     try {
       for (const pkg of PKGS) {
         await loadScript(`https://cdn.jsdelivr.net/npm/${pkg}@${FB_VER}/dist/${pkg}.min.js`);
@@ -780,10 +864,6 @@
 </script>
 
 <script>
-// ============================================================
-//  FIREBASE CONFIG & INIT
-//  — window.onload でラップし、CDN読み込み完了を保証する
-// ============================================================
 const firebaseConfig = {
   apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
   authDomain: "sleepy-nuts.firebaseapp.com",
@@ -793,7 +873,6 @@ const firebaseConfig = {
   appId: "1:45736862470:web:780336e12ecfcda222f487"
 };
 
-// グローバル参照（onload 後に代入）
 let auth, db;
 
 window.__firebaseReady.then((loaded) => {
@@ -809,7 +888,6 @@ window.__firebaseReady.then((loaded) => {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db   = firebase.firestore();
-  // 認証状態の監視を開始
   auth.onAuthStateChanged(onAuthStateChanged_handler);
 });
 
@@ -819,9 +897,9 @@ window.__firebaseReady.then((loaded) => {
 let currentUser = null;
 let userProfile = null;
 let unsubTimeline = null;
-let lastReportType = null; // 'sleep' or 'wake'
+let unsubUsers = null;
+let lastReportType = null;
 
-// ユーザーごとの最新ステータスを保持するMap: uid → { displayName, type, localTime, timestamp }
 const userStatusMap = new Map();
 
 // ============================================================
@@ -857,7 +935,7 @@ async function handleRegister() {
       displayName: name,
       goalSleep: '23:00',
       goalWake: '06:00',
-      createdAt: firebase.firestore.FieldValue.serverTimestamp()  // firebase はこの時点でロード済み
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
   } catch (e) {
     showAuthError(getFirebaseErrorMsg(e.code));
@@ -866,6 +944,7 @@ async function handleRegister() {
 
 function handleLogout() {
   if (unsubTimeline) unsubTimeline();
+  if (unsubUsers) unsubUsers();
   auth.signOut();
 }
 
@@ -941,6 +1020,7 @@ function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   if (unsubTimeline) { unsubTimeline(); unsubTimeline = null; }
+  if (unsubUsers)    { unsubUsers();    unsubUsers = null; }
 }
 
 function showMainScreen() {
@@ -959,6 +1039,7 @@ function showMainScreen() {
   startClock();
   updateReportButton();
   subscribeTimeline();
+  subscribeUsers();
 }
 
 // ============================================================
@@ -1012,16 +1093,19 @@ async function handleReport() {
   const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
   const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
 
-  const localTime = now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+  const localTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  // ★ 月日を保存する（例："6/1"）
+  const localDate = (now.getMonth() + 1) + '/' + now.getDate();
 
   const logData = {
     uid: currentUser.uid,
     displayName: userProfile.displayName || 'ユーザー',
     type,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),  // firebase はロード済み
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
     isOnTime,
     goalTime: goalTime || null,
-    localTime
+    localTime,
+    localDate   // ★ 追加
   };
 
   try {
@@ -1064,7 +1148,7 @@ function showReportResult(type, isOnTime) {
 }
 
 // ============================================================
-//  TIMELINE + STATUS GRID (リアルタイム購読)
+//  TIMELINE + STATUS GRID（リアルタイム購読）
 // ============================================================
 function subscribeTimeline() {
   if (unsubTimeline) unsubTimeline();
@@ -1086,6 +1170,7 @@ function subscribeTimeline() {
             displayName: d.displayName || 'ユーザー',
             type: d.type,
             localTime: d.localTime || '',
+            localDate: d.localDate || '',   // ★ 追加
             timestamp: d.timestamp,
             isOnTime: d.isOnTime ?? null,
             goalTime: d.goalTime || null
@@ -1109,7 +1194,6 @@ function renderStatusGrid() {
     return;
   }
 
-  // 睡眠中を先に、次に起床中
   const entries = Array.from(userStatusMap.values());
   entries.sort((a, b) => {
     if (a.type === b.type) return 0;
@@ -1128,11 +1212,18 @@ function renderStatusCard(u) {
   const timeLabel  = isSleeping ? 'シュウシン' : 'キショウ';
   const timeIcon   = isSleeping ? '🌙' : '☀️';
 
-  // 表示時刻
+  // ★ 時刻（HH:MM）
   let displayTime = u.localTime || '';
   if (!displayTime && u.timestamp && u.timestamp.toDate) {
     const t = u.timestamp.toDate();
     displayTime = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
+  }
+
+  // ★ 月日（M/D）— localDate がなければ timestamp から生成
+  let displayDate = u.localDate || '';
+  if (!displayDate && u.timestamp && u.timestamp.toDate) {
+    const t = u.timestamp.toDate();
+    displayDate = (t.getMonth() + 1) + '/' + t.getDate();
   }
 
   // 達成バッジ
@@ -1156,10 +1247,12 @@ function renderStatusCard(u) {
       <div class="card-avatar ${stateClass}">${escapeHtml(u.displayName.charAt(0))}</div>
       <span class="card-name">${escapeHtml(u.displayName)}</span>
     </div>
-    <div class="card-time-row">
-      <span class="card-time-icon">${timeIcon}</span>
-      <span class="card-time-label">${timeLabel}</span>
-      <span class="card-time-value ${stateClass}">${escapeHtml(displayTime)}</span>
+    <div class="card-datetime-block">
+      <span class="card-date-label">${timeIcon} ${escapeHtml(timeLabel)}</span>
+      <div class="card-datetime-row">
+        <span class="card-time-value ${stateClass}">${escapeHtml(displayTime)}</span>
+        ${displayDate ? `<span style="font-size:0.78rem;color:var(--text-2);margin-left:0.25rem;">${escapeHtml(displayDate)}</span>` : ''}
+      </div>
     </div>
     ${achievementBadge}
   `;
@@ -1172,6 +1265,63 @@ function escapeHtml(s) {
     .replace(/</g,'&lt;')
     .replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;');
+}
+
+// ============================================================
+//  USERS 購読 → 目標時間テーブル（NEW）
+// ============================================================
+function subscribeUsers() {
+  if (unsubUsers) unsubUsers();
+
+  unsubUsers = db.collection('users').onSnapshot((snapshot) => {
+    const users = [];
+    snapshot.forEach((doc) => {
+      const d = doc.data();
+      users.push({
+        uid: doc.id,
+        displayName: d.displayName || 'ユーザー',
+        goalSleep: d.goalSleep || null,
+        goalWake:  d.goalWake  || null
+      });
+    });
+    users.sort((a, b) => a.displayName.localeCompare(b.displayName, 'ja'));
+    renderGoalsTable(users);
+  }, (err) => {
+    console.error(err);
+  });
+}
+
+function renderGoalsTable(users) {
+  const tbody = document.getElementById('goals-table-body');
+  tbody.innerHTML = '';
+
+  if (users.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3"><div class="goals-empty">メンバーがいません</div></td></tr>';
+    return;
+  }
+
+  users.forEach((u) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>
+        <div class="gt-name">
+          <div class="gt-avatar">${escapeHtml(u.displayName.charAt(0))}</div>
+          <span>${escapeHtml(u.displayName)}</span>
+        </div>
+      </td>
+      <td>
+        ${u.goalSleep
+          ? `<span class="gt-time sleep">${escapeHtml(u.goalSleep)}</span>`
+          : `<span class="gt-unset">未設定</span>`}
+      </td>
+      <td>
+        ${u.goalWake
+          ? `<span class="gt-time wake">${escapeHtml(u.goalWake)}</span>`
+          : `<span class="gt-unset">未設定</span>`}
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
 }
 
 // ============================================================
