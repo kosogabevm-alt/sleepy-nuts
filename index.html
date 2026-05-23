@@ -524,6 +524,30 @@
   .card-time-value.sleeping { color: #90b8ff; }
   .card-time-value.awake    { color: #f5c842; }
 
+  /* カード：目標時間行 */
+  .card-goal-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.3rem;
+    padding: 0.28rem 0.55rem;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+  }
+  .card-goal-label {
+    font-size: 0.7rem;
+    color: var(--text-2);
+    letter-spacing: 0.03em;
+  }
+  .card-goal-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .card-goal-value.sleeping { color: rgba(144,184,255,0.7); }
+  .card-goal-value.awake    { color: rgba(245,200,66,0.7); }
+
   /* カード：達成バッジ */
   .card-achieve-badge {
     display: inline-block;
@@ -1234,6 +1258,16 @@ function renderStatusCard(u) {
     achievementBadge = '<span class="card-achieve-badge missed">🔵 次頑張ろう</span>';
   }
 
+  // 目標時間ライン（就寝中→就寝目標、起床中→起床目標）
+  const goalIcon  = isSleeping ? '🌙' : '☀️';
+  const goalLabel = isSleeping ? '就寝目標' : '起床目標';
+  const goalHTML  = u.goalTime
+    ? `<div class="card-goal-row">
+        <span class="card-goal-label">${goalIcon} ${goalLabel}</span>
+        <span class="card-goal-value ${stateClass}">${escapeHtml(u.goalTime)}</span>
+       </div>`
+    : '';
+
   const card = document.createElement('div');
   card.className = `status-card ${stateClass}`;
   card.innerHTML = `
@@ -1254,6 +1288,7 @@ function renderStatusCard(u) {
         ${displayDate ? `<span style="font-size:0.78rem;color:var(--text-2);margin-left:0.25rem;">${escapeHtml(displayDate)}</span>` : ''}
       </div>
     </div>
+    ${goalHTML}
     ${achievementBadge}
   `;
   return card;
