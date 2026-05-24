@@ -569,70 +569,99 @@
     border: 1px solid rgba(79,172,254,0.35);
   }
 
-  /* ===== 目標一覧テーブル (NEW) ===== */
-  .goals-table-wrap {
-    margin-top: 0.5rem;
+  /* ===== 達成率カード ===== */
+  .achieve-card {
+    background: var(--night-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.65rem;
+    animation: fadeIn 0.3s ease;
   }
-  .goals-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  .goals-table thead tr th {
-    font-size: 0.72rem;
-    color: var(--text-2);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    padding: 0.4rem 0.75rem;
-    text-align: left;
-    border-bottom: 1px solid var(--border);
-    font-weight: 500;
-  }
-  .goals-table tbody tr {
-    border-bottom: 1px solid rgba(200,216,248,0.05);
-    transition: background 0.15s;
-  }
-  .goals-table tbody tr:last-child { border-bottom: none; }
-  .goals-table tbody tr:hover { background: rgba(255,255,255,0.03); }
-  .goals-table td {
-    padding: 0.65rem 0.75rem;
-    font-size: 0.88rem;
-    vertical-align: middle;
-  }
-  .gt-name {
+  .achieve-card-top {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
+    margin-bottom: 0.75rem;
   }
-  .gt-avatar {
-    width: 26px;
-    height: 26px;
+  .achieve-avatar {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     background: linear-gradient(135deg, var(--night-3), var(--night-4));
     border: 1px solid var(--moon-2);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     font-weight: 700;
     color: var(--moon);
     flex-shrink: 0;
   }
-  .gt-time {
+  .achieve-name {
+    font-size: 0.95rem;
+    font-weight: 700;
+    flex: 1;
+  }
+  .achieve-overall {
     font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.1rem;
+    font-size: 1.4rem;
     letter-spacing: 0.05em;
+    line-height: 1;
   }
-  .gt-time.sleep { color: #90b8ff; }
-  .gt-time.wake  { color: #f5c842; }
-  .gt-unset {
+  /* バーエリア */
+  .achieve-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .achieve-bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .achieve-bar-label {
+    font-size: 0.72rem;
     color: var(--text-2);
-    font-size: 0.8rem;
+    width: 4.5rem;
+    flex-shrink: 0;
   }
-  .goals-empty {
+  .achieve-bar-track {
+    flex: 1;
+    height: 6px;
+    background: rgba(255,255,255,0.07);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+  .achieve-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    transition: width 0.6s cubic-bezier(0.4,0,0.2,1);
+  }
+  .achieve-bar-fill.sleep { background: linear-gradient(90deg, #3a6ecc, #7ab0ff); }
+  .achieve-bar-fill.wake  { background: linear-gradient(90deg, #c87c00, #f5c842); }
+  .achieve-bar-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    width: 2.8rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .achieve-bar-pct.sleep { color: #90b8ff; }
+  .achieve-bar-pct.wake  { color: #f5c842; }
+  .achieve-bar-count {
+    font-size: 0.68rem;
+    color: var(--text-2);
+    width: 3.5rem;
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .achieve-empty {
     text-align: center;
     color: var(--text-2);
     font-size: 0.85rem;
-    padding: 1.5rem 0 0.5rem;
+    padding: 2rem 0;
   }
 
   /* ===== HISTORY LOG ===== */
@@ -801,21 +830,10 @@
         <div class="loading" style="grid-column:1/-1">読み込み中…</div>
       </div>
 
-      <!-- 目標時間一覧（NEW） -->
-      <div class="timeline-section-label" style="margin-top:0.5rem">メンバーの目標時間</div>
-      <div class="settings-card goals-table-wrap">
-        <table class="goals-table">
-          <thead>
-            <tr>
-              <th>名前</th>
-              <th>🌙 就寝目標</th>
-              <th>☀️ 起床目標</th>
-            </tr>
-          </thead>
-          <tbody id="goals-table-body">
-            <tr><td colspan="3"><div class="goals-empty">読み込み中…</div></td></tr>
-          </tbody>
-        </table>
+      <!-- 直近1週間の達成率 -->
+      <div class="timeline-section-label" style="margin-top:0.5rem">直近1週間の達成率</div>
+      <div id="achievement-list">
+        <div class="loading">読み込み中…</div>
       </div>
     </div>
 
@@ -921,7 +939,6 @@ window.__firebaseReady.then((loaded) => {
 let currentUser = null;
 let userProfile = null;
 let unsubTimeline = null;
-let unsubUsers = null;
 let lastReportType = null;
 
 const userStatusMap = new Map();
@@ -968,7 +985,6 @@ async function handleRegister() {
 
 function handleLogout() {
   if (unsubTimeline) unsubTimeline();
-  if (unsubUsers) unsubUsers();
   auth.signOut();
 }
 
@@ -1044,7 +1060,6 @@ function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   if (unsubTimeline) { unsubTimeline(); unsubTimeline = null; }
-  if (unsubUsers)    { unsubUsers();    unsubUsers = null; }
 }
 
 function showMainScreen() {
@@ -1063,7 +1078,7 @@ function showMainScreen() {
   startClock();
   updateReportButton();
   subscribeTimeline();
-  subscribeUsers();
+  loadAchievementRates();
 }
 
 // ============================================================
@@ -1202,6 +1217,7 @@ function subscribeTimeline() {
         }
       });
       renderStatusGrid();
+      loadAchievementRates();
     }, (err) => {
       console.error(err);
       grid.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
@@ -1303,59 +1319,117 @@ function escapeHtml(s) {
 }
 
 // ============================================================
-//  USERS 購読 → 目標時間テーブル（NEW）
+//  直近1週間の達成率
 // ============================================================
-function subscribeUsers() {
-  if (unsubUsers) unsubUsers();
+async function loadAchievementRates() {
+  const listEl = document.getElementById('achievement-list');
+  listEl.innerHTML = '<div class="loading">集計中…</div>';
 
-  unsubUsers = db.collection('users').onSnapshot((snapshot) => {
-    const users = [];
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - 7);
+    since.setHours(0, 0, 0, 0);
+
+    const snapshot = await db.collection('logs')
+      .where('timestamp', '>=', firebase.firestore.Timestamp.fromDate(since))
+      .orderBy('timestamp', 'desc')
+      .get();
+
+    // uid → { displayName, sleep:{total,achieved}, wake:{total,achieved} }
+    const map = new Map();
+
     snapshot.forEach((doc) => {
       const d = doc.data();
-      users.push({
-        uid: doc.id,
-        displayName: d.displayName || 'ユーザー',
-        goalSleep: d.goalSleep || null,
-        goalWake:  d.goalWake  || null
-      });
+      if (!d.uid || d.isOnTime === null || d.isOnTime === undefined) return;
+
+      if (!map.has(d.uid)) {
+        map.set(d.uid, {
+          displayName: d.displayName || 'ユーザー',
+          sleep: { total: 0, achieved: 0 },
+          wake:  { total: 0, achieved: 0 }
+        });
+      }
+      const u = map.get(d.uid);
+      if (d.type === 'sleep') {
+        u.sleep.total++;
+        if (d.isOnTime) u.sleep.achieved++;
+      } else {
+        u.wake.total++;
+        if (d.isOnTime) u.wake.achieved++;
+      }
     });
-    users.sort((a, b) => a.displayName.localeCompare(b.displayName, 'ja'));
-    renderGoalsTable(users);
-  }, (err) => {
-    console.error(err);
-  });
+
+    renderAchievementList(map);
+  } catch (e) {
+    console.error(e);
+    listEl.innerHTML = '<div class="achieve-empty">データの取得に失敗しました</div>';
+  }
 }
 
-function renderGoalsTable(users) {
-  const tbody = document.getElementById('goals-table-body');
-  tbody.innerHTML = '';
+function renderAchievementList(map) {
+  const listEl = document.getElementById('achievement-list');
+  listEl.innerHTML = '';
 
-  if (users.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="3"><div class="goals-empty">メンバーがいません</div></td></tr>';
+  if (map.size === 0) {
+    listEl.innerHTML = '<div class="achieve-empty">直近1週間のデータがありません</div>';
     return;
   }
 
-  users.forEach((u) => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>
-        <div class="gt-name">
-          <div class="gt-avatar">${escapeHtml(u.displayName.charAt(0))}</div>
-          <span>${escapeHtml(u.displayName)}</span>
+  // 総合達成率（就寝+起床）の高い順にソート
+  const entries = Array.from(map.entries()).map(([uid, u]) => {
+    const total = u.sleep.total + u.wake.total;
+    const achieved = u.sleep.achieved + u.wake.achieved;
+    return { uid, ...u, total, achieved };
+  });
+  entries.sort((a, b) => {
+    const ra = a.total ? a.achieved / a.total : 0;
+    const rb = b.total ? b.achieved / b.total : 0;
+    return rb - ra;
+  });
+
+  entries.forEach((u) => {
+    const sleepPct = u.sleep.total ? Math.round(u.sleep.achieved / u.sleep.total * 100) : null;
+    const wakePct  = u.wake.total  ? Math.round(u.wake.achieved  / u.wake.total  * 100) : null;
+    const overallPct = u.total ? Math.round(u.achieved / u.total * 100) : null;
+
+    // 総合達成率の色
+    let overallColor = '#8fa8c8';
+    if (overallPct !== null) {
+      if (overallPct >= 80) overallColor = '#43e97b';
+      else if (overallPct >= 50) overallColor = '#f5c842';
+      else overallColor = '#4facfe';
+    }
+
+    const card = document.createElement('div');
+    card.className = 'achieve-card';
+    card.innerHTML = `
+      <div class="achieve-card-top">
+        <div class="achieve-avatar">${escapeHtml(u.displayName.charAt(0))}</div>
+        <span class="achieve-name">${escapeHtml(u.displayName)}</span>
+        <span class="achieve-overall" style="color:${overallColor}">
+          ${overallPct !== null ? overallPct + '%' : '－'}
+        </span>
+      </div>
+      <div class="achieve-bars">
+        <div class="achieve-bar-row">
+          <span class="achieve-bar-label">🌙 就寝</span>
+          <div class="achieve-bar-track">
+            <div class="achieve-bar-fill sleep" style="width:${sleepPct ?? 0}%"></div>
+          </div>
+          <span class="achieve-bar-pct sleep">${sleepPct !== null ? sleepPct + '%' : '－'}</span>
+          <span class="achieve-bar-count">${u.sleep.achieved}/${u.sleep.total}日</span>
         </div>
-      </td>
-      <td>
-        ${u.goalSleep
-          ? `<span class="gt-time sleep">${escapeHtml(u.goalSleep)}</span>`
-          : `<span class="gt-unset">未設定</span>`}
-      </td>
-      <td>
-        ${u.goalWake
-          ? `<span class="gt-time wake">${escapeHtml(u.goalWake)}</span>`
-          : `<span class="gt-unset">未設定</span>`}
-      </td>
+        <div class="achieve-bar-row">
+          <span class="achieve-bar-label">☀️ 起床</span>
+          <div class="achieve-bar-track">
+            <div class="achieve-bar-fill wake" style="width:${wakePct ?? 0}%"></div>
+          </div>
+          <span class="achieve-bar-pct wake">${wakePct !== null ? wakePct + '%' : '－'}</span>
+          <span class="achieve-bar-count">${u.wake.achieved}/${u.wake.total}日</span>
+        </div>
+      </div>
     `;
-    tbody.appendChild(tr);
+    listEl.appendChild(card);
   });
 }
 
