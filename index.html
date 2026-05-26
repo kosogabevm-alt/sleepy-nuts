@@ -337,7 +337,7 @@
   }
   .card-time-main { display: flex; flex-direction: column; gap: 0.05rem; }
   .card-time-type-label {
-    font-size: 0.65rem; letter-spacing: 0.07em; text-transform: uppercase; font-weight: 700;
+    font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700;
   }
   .card-time-type-label.sleeping { color: rgba(122,176,255,0.7); }
   .card-time-type-label.awake { color: rgba(245,200,66,0.7); }
@@ -884,7 +884,7 @@ function sendTestNotif() {
 }
 function fireNotification(data) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  if (data.uid === currentUser?.uid) return; // 自分の報告は通知しない
+  if (data.uid === currentUser?.uid) return;
   const isSleep = data.type === 'sleep';
   if (isSleep && !notifPrefs.sleep) return;
   if (!isSleep && !notifPrefs.wake) return;
@@ -933,7 +933,6 @@ function subscribeTimeline() {
     .orderBy('timestamp', 'desc')
     .limit(50)
     .onSnapshot((snapshot) => {
-      // 差分で通知判定（初回ロード時は通知しない）
       if (!isFirst) {
         snapshot.docChanges().forEach((change) => {
           if (change.type === 'added') {
@@ -957,11 +956,9 @@ function subscribeTimeline() {
         }
       });
 
-      // customOrder に新規ユーザーを追記
       userStatusMap.forEach((_, uid) => {
         if (!customOrder.includes(uid)) customOrder.push(uid);
       });
-      // customOrder から抜けたユーザーを削除
       customOrder = customOrder.filter(uid => userStatusMap.has(uid));
       saveCustomOrder();
 
@@ -1017,7 +1014,7 @@ function renderStatusCard(u) {
   const isSleeping  = u.type === 'sleep';
   const stateClass  = isSleeping ? 'sleeping' : 'awake';
   const badgeLabel  = isSleeping ? '睡眠中' : '起床中';
-  const typeLabel   = isSleeping ? 'SHUSHIN' : 'KISHO';
+  const typeLabel   = isSleeping ? '就寝' : '起床';  // ← 変更箇所
   const goalIcon    = isSleeping ? '🌙' : '☀️';
   const goalLabel   = isSleeping ? '就寝目標' : '起床目標';
 
