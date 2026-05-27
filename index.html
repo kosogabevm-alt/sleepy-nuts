@@ -5,6 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全力睡眠 — チーム睡眠管理</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+<!-- Firebase SDK -->
+<script>
+  window.__firebaseReady = new Promise((resolve) => {
+    window.__firebaseReadyResolve = resolve;
+  });
+</script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
+  onload="window.__fbAppLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
+  onerror="window.__firebaseReadyResolve(false)"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"
+  onload="window.__fbAuthLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
+  onerror="window.__firebaseReadyResolve(false)"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"
+  onload="window.__fbFsLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
+  onerror="window.__firebaseReadyResolve(false)"></script>
+<script>
+  window.__checkFirebase = function() {
+    if (window.__fbAppLoaded && window.__fbAuthLoaded && window.__fbFsLoaded) {
+      window.__firebaseReadyResolve(true);
+    }
+  };
+  window.__checkFirebase();
+</script>
 <style>
   :root {
     --night: #0a0e1a;
