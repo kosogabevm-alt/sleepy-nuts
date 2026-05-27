@@ -587,89 +587,6 @@
 <div class="toast" id="toast"></div>
 
 <script>
-  let swRegistration = null;
-
-  // 1. Firebaseのログイン状態を「アプリを閉じても維持する」設定に変更
-  // (firebase.initializeApp の後に実行されるようにしてください)
-  try {
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-      .then(() => {
-        console.log("Firebase: ログイン状態の永続化をLOCALに設定しました");
-        
-        // ログイン状態の監視
-        firebase.auth().onAuthStateChanged((user) => {
-          if (user) {
-            console.log("ログイン中:", user.email);
-            // ここにメイン画面を表示する既存のロジックがあれば記述
-          } else {
-            console.log("ログアウト状態、または読み込み中");
-            // 完全にログアウトしている場合のみログイン画面を出す
-          }
-        });
-      })
-      .catch((error) => {
-        console.error("Persistence設定失敗:", error);
-      });
-  } catch(e) {
-    console.log("Firebase Auth未初期化、または読込順の調整が必要です:", e);
-  }
-
-  // 2. サービスワーカーの登録
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(registration => {
-          console.log('ServiceWorker登録成功');
-          swRegistration = registration;
-        })
-        .catch(error => {
-          console.error('ServiceWorker登録失敗:', error);
-        });
-    });
-  }
-
-  // 3. アラームをセットするメイン関数（ボタンのonclickなどから呼び出してください）
-  function testBackgroundAlarm() {
-    // ユーザーに通知の許可を求める（これを許可しないと音もバイブも鳴りません）
-    if (Notification.permission !== 'granted') {
-      Notification.requestPermission().then(permission => {
-        if (permission === 'granted') {
-          alert('通知が許可されました！もう一度アラームボタンを押してください。');
-        } else {
-          alert('通知がブロックされています。ブラウザの設定から通知を許可してください。');
-        }
-      });
-      return;
-    }
-
-    // サービスワーカーが準備できているか確認
-    if (swRegistration && navigator.serviceWorker.controller) {
-      
-      // テスト用に「10秒後（10000ミリ秒）」を指定
-      const targetDelay = 10000; 
-
-      alert('アラームを10秒後にセットしました！画面を消すか、アプリを閉じてテストしてください。');
-
-      // サービスワーカー（裏側）に「10秒後に通知を出せ」と命令を送る
-      navigator.serviceWorker.controller.postMessage({
-        action: 'startAlarm',
-        delay: targetDelay
-      });
-
-    } else {
-      alert('サービスワーカーがまだ準備できていません。ページを再読み込み（Ctrl+F5）してください。');
-    }
-  }
-</script>
-
-<div style="text-align: center; margin-top: 20px;">
-  <button onclick="testBackgroundAlarm()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
-    ⏰ バックグラウンドアラームテスト (10秒後)
-  </button>
-</div>
-</script>
-
-<script>
 const firebaseConfig = {
   apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
   authDomain: "sleepy-nuts.firebaseapp.com",
@@ -688,6 +605,7 @@ window.__firebaseReady.then((loaded) => {
   firebase.initializeApp(firebaseConfig);
   auth = firebase.auth();
   db   = firebase.firestore();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(console.error);
   auth.onAuthStateChanged(onAuthStateChanged_handler);
 });
 
