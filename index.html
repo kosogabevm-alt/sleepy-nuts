@@ -4,31 +4,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全力睡眠 — チーム睡眠管理</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="全力睡眠">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 
-<!-- Firebase SDK -->
+<!-- Firebase SDK（フォールバック付き） -->
 <script>
-  window.__firebaseReady = new Promise((resolve) => {
-    window.__firebaseReadyResolve = resolve;
-  });
+(function() {
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+  const FB_VER = '10.12.0';
+  const PKGS = ['firebase-app-compat','firebase-auth-compat','firebase-firestore-compat'];
+  async function loadFirebase() {
+    try { for (const p of PKGS) await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/${p}.js`); return true; } catch(_) {}
+    try { for (const p of PKGS) await loadScript(`https://unpkg.com/${p}@${FB_VER}/dist/${p}.js`); return true; } catch(_) {}
+    try { for (const p of PKGS) await loadScript(`https://cdn.jsdelivr.net/npm/${p}@${FB_VER}/dist/${p}.min.js`); return true; } catch(_) {}
+    return false;
+  }
+  window.__firebaseReady = loadFirebase();
+})();
 </script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
-  onload="window.__fbAppLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
-  onerror="window.__firebaseReadyResolve(false)"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"
-  onload="window.__fbAuthLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
-  onerror="window.__firebaseReadyResolve(false)"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"
-  onload="window.__fbFsLoaded=true;window.__checkFirebase&&window.__checkFirebase()"
-  onerror="window.__firebaseReadyResolve(false)"></script>
-<script>
-  window.__checkFirebase = function() {
-    if (window.__fbAppLoaded && window.__fbAuthLoaded && window.__fbFsLoaded) {
-      window.__firebaseReadyResolve(true);
-    }
-  };
-  window.__checkFirebase();
-</script>
+
 <style>
   :root {
     --night: #0a0e1a;
@@ -353,7 +365,7 @@
   }
   .card-name { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ★ 時刻・日付ブロック（ここだけ大きく） */
+  /* ★ 時刻・日付ブロック */
   .card-time-block {
     padding: 0.6rem 0.65rem; border-radius: 10px;
     background: rgba(0,0,0,0.25); margin-bottom: 0.5rem;
@@ -440,6 +452,106 @@
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 480px) { .report-btn { width: 170px; height: 170px; } .current-time { font-size: 3rem; } }
+
+  /* ===== ALARM ===== */
+  .alarm-card {
+    background: var(--night-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+    transition: border-color 0.4s, box-shadow 0.4s;
+  }
+  .alarm-card.alarm-active {
+    border-color: rgba(245,168,35,0.5);
+    box-shadow: 0 0 20px rgba(245,168,35,0.15);
+    animation: alarmGlow 2s ease-in-out infinite;
+  }
+  .alarm-card.alarm-ringing {
+    border-color: rgba(255,77,109,0.7);
+    box-shadow: 0 0 30px rgba(255,77,109,0.3);
+    animation: alarmRingGlow 0.5s ease-in-out infinite;
+  }
+  @keyframes alarmGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,168,35,0.15); }
+    50%       { box-shadow: 0 0 35px rgba(245,168,35,0.30); }
+  }
+  @keyframes alarmRingGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,77,109,0.3); }
+    50%       { box-shadow: 0 0 55px rgba(255,77,109,0.6); }
+  }
+  .alarm-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .alarm-title  { font-size: 0.8rem; color: var(--text-2); letter-spacing: 0.1em; text-transform: uppercase; }
+  .alarm-status-badge { font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.65rem; border-radius: 20px; }
+  .alarm-status-badge.off     { background: rgba(255,255,255,0.05); color: var(--text-2); border: 1px solid var(--border); }
+  .alarm-status-badge.set     { background: rgba(245,168,35,0.15); color: var(--sun); border: 1px solid rgba(245,168,35,0.4); }
+  .alarm-status-badge.ringing { background: rgba(255,77,109,0.2); color: var(--red); border: 1px solid rgba(255,77,109,0.5); animation: pulse 0.5s infinite; }
+  .alarm-time-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
+  .alarm-time-display { font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; letter-spacing: 0.05em; line-height: 1; color: var(--sun); flex: 1; }
+  .alarm-time-display.inactive { color: var(--text-2); }
+  .alarm-source-tabs { display: flex; background: var(--night-3); border-radius: 8px; padding: 3px; margin-bottom: 0.75rem; }
+  .alarm-source-tab { flex: 1; padding: 0.4rem 0.5rem; border: none; background: transparent; color: var(--text-2); font-family: inherit; font-size: 0.78rem; border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .alarm-source-tab.active { background: var(--night-4); color: var(--moon); font-weight: 700; }
+  .alarm-custom-input-row { display: flex; align-items: center; gap: 0.5rem; }
+  .alarm-custom-label { font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
+  .alarm-actions { display: flex; gap: 0.65rem; }
+  .btn-alarm-set { flex: 1; padding: 0.7rem; background: linear-gradient(135deg, #1a4a8a, #2a6abf); border: none; border-radius: var(--radius-sm); color: white; font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+  .btn-alarm-set:hover { opacity: 0.85; }
+  .btn-alarm-cancel { padding: 0.7rem 1rem; background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-2); font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
+  .btn-alarm-cancel:hover { border-color: var(--text-2); color: var(--text); }
+  .btn-alarm-stop { flex: 1; padding: 0.85rem; background: linear-gradient(135deg, #8a1a1a, #bf2a2a); border: none; border-radius: var(--radius-sm); color: white; font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer; transition: transform 0.1s; animation: pulse 0.6s infinite; letter-spacing: 0.05em; }
+  .btn-alarm-stop:active { transform: scale(0.96); }
+  .alarm-countdown { font-size: 0.8rem; color: var(--text-2); margin-top: 0.6rem; text-align: center; }
+  .alarm-countdown span { color: var(--sun); font-weight: 700; }
+  .alarm-sw-row { display: flex; align-items: center; justify-content: space-between; margin-top: 0.6rem; padding: 0.45rem 0.75rem; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border); font-size: 0.72rem; }
+  .alarm-sw-label { color: var(--text-2); }
+  .alarm-sw-val { font-weight: 700; }
+  .alarm-sw-val.ok   { color: var(--green); }
+  .alarm-sw-val.warn { color: var(--sun); }
+  .alarm-sw-val.ng   { color: var(--red); }
+  .snooze-banner { display: none; align-items: center; justify-content: space-between; padding: 0.6rem 0.9rem; border-radius: 10px; background: rgba(245,168,35,0.1); border: 1px solid rgba(245,168,35,0.3); margin-top: 0.75rem; font-size: 0.82rem; }
+  .snooze-banner.show { display: flex; }
+  .snooze-banner span { color: var(--sun); font-weight: 700; }
+  .btn-snooze-cancel { background: transparent; border: 1px solid rgba(245,168,35,0.4); border-radius: 6px; color: var(--sun); font-family: inherit; font-size: 0.75rem; padding: 0.25rem 0.6rem; cursor: pointer; transition: background 0.2s; }
+  .btn-snooze-cancel:hover { background: rgba(245,168,35,0.1); }
+  /* SW status badge */
+  .sw-status-badge { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 20px; margin-top: 0.5rem; }
+  .sw-status-badge.active   { background: rgba(67,233,123,0.1); color: var(--green); border: 1px solid rgba(67,233,123,0.3); }
+  .sw-status-badge.inactive { background: rgba(255,77,109,0.1);  color: var(--red);   border: 1px solid rgba(255,77,109,0.3); }
+  .sw-status-badge.pending  { background: rgba(255,200,66,0.1);  color: var(--sun);   border: 1px solid rgba(255,200,66,0.3); }
+  .sw-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* ===== VOLUME SLIDER ===== */
+  .alarm-volume-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-top: 0.75rem; padding: 0.5rem 0.75rem;
+    border-radius: 8px; background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+  }
+  .alarm-volume-label { font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
+  .alarm-volume-value {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1rem;
+    color: var(--sun); min-width: 2.5rem; text-align: right;
+  }
+  input[type=range].volume-slider {
+    -webkit-appearance: none; appearance: none;
+    flex: 1; height: 4px; border-radius: 99px; outline: none; cursor: pointer;
+    background: linear-gradient(
+      90deg,
+      var(--sun) 0%,
+      var(--sun) var(--vol, 70%),
+      rgba(255,255,255,0.12) var(--vol, 70%),
+      rgba(255,255,255,0.12) 100%
+    );
+    transition: background 0.1s;
+  }
+  input[type=range].volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.6); cursor: pointer;
+    transition: transform 0.15s;
+  }
+  input[type=range].volume-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
+  input[type=range].volume-slider::-moz-range-thumb {
+    width: 18px; height: 18px; border-radius: 50%; border: none;
+    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.6); cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -521,6 +633,62 @@
         </button>
       </div>
       <div class="report-result" id="report-result"></div>
+
+      <!-- アラームカード -->
+      <div class="alarm-card" id="alarm-card">
+        <div class="alarm-header">
+          <span class="alarm-title">⏰ アラーム</span>
+          <span class="alarm-status-badge off" id="alarm-status-badge">オフ</span>
+        </div>
+        <div class="alarm-source-tabs">
+          <button class="alarm-source-tab active" id="alarm-src-goal"   onclick="setAlarmSource('goal')">🌅 目標起床時刻を使う</button>
+          <button class="alarm-source-tab"         id="alarm-src-custom" onclick="setAlarmSource('custom')">✏️ 時刻を指定</button>
+        </div>
+        <div id="alarm-goal-display" class="alarm-time-row">
+          <div class="alarm-time-display inactive" id="alarm-goal-time-text">--:--</div>
+          <div style="font-size:0.78rem;color:var(--text-2);line-height:1.5">設定タブの<br>目標起床時刻を使用</div>
+        </div>
+        <div id="alarm-custom-display" style="display:none" class="alarm-time-row">
+          <div class="alarm-custom-input-row" style="width:100%">
+            <span class="alarm-custom-label">起床時刻：</span>
+            <input class="time-input" type="time" id="alarm-custom-input" value="06:00" style="flex:1">
+          </div>
+        </div>
+        <div class="alarm-actions" id="alarm-actions-normal">
+          <button class="btn-alarm-set" onclick="setAlarm()">🔔 アラームをセット</button>
+        </div>
+        <div class="alarm-actions" id="alarm-actions-set" style="display:none">
+          <button class="btn-alarm-set" style="background:linear-gradient(135deg,#1a3a1a,#2a6a2a)" onclick="setAlarm()">🔁 更新</button>
+          <button class="btn-alarm-cancel" onclick="cancelAlarm()">✕ 解除</button>
+        </div>
+        <div class="alarm-actions" id="alarm-actions-ringing" style="display:none">
+          <button class="btn-alarm-stop" onclick="stopAlarm()">🛑 アラームを止める</button>
+        </div>
+        <div class="snooze-banner" id="snooze-banner">
+          <span>💤 スヌーズ中 … <span id="snooze-time-text">--:--</span> に再アラーム</span>
+          <button class="btn-snooze-cancel" onclick="cancelAlarm()">解除</button>
+        </div>
+
+        <!-- ★ 音量スライダー（新規追加） -->
+        <div class="alarm-volume-row">
+          <span class="alarm-volume-label">🔊 音量</span>
+          <input type="range" class="volume-slider" id="alarm-volume"
+                 min="0" max="100" value="70"
+                 oninput="onAlarmVolumeChange(this.value)">
+          <span class="alarm-volume-value" id="alarm-volume-val">70%</span>
+        </div>
+
+        <div class="alarm-countdown" id="alarm-countdown" style="display:none">
+          アラームまで <span id="alarm-countdown-text">--</span>
+        </div>
+        <div class="alarm-sw-row">
+          <span class="alarm-sw-label">🛡 バックグラウンド保護</span>
+          <span class="alarm-sw-val" id="alarm-sw-status">確認中…</span>
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-2);margin-top:0.6rem;text-align:center">
+          ※ バックグラウンド保護が有効なら画面オフでも起動します
+        </div>
+      </div>
     </div>
 
     <!-- メンバータブ -->
@@ -600,8 +768,12 @@
 
         <div id="notif-permission-status"></div>
         <button class="btn-notif-test" onclick="sendTestNotif()">🔔 テスト通知を送る</button>
+        <div style="margin-top:1rem">
+          <div class="settings-title">🛡 Service Worker 状態</div>
+          <div id="sw-global-status" style="font-size:0.82rem;color:var(--text-2)">確認中…</div>
+        </div>
         <div style="font-size:0.72rem;color:var(--text-2);margin-top:0.6rem">
-          ※ アプリを開いている間のみ通知が届きます
+          ※ アプリを開いている間のみ Firestore 通知が届きます
         </div>
       </div>
     </div>
@@ -609,6 +781,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
 
 <script>
 const firebaseConfig = {
@@ -643,8 +816,8 @@ let lastReportType = null;
 const userStatusMap = new Map();
 
 // 並び替え
-let sortMode = 'custom';  // 'custom' | 'status' | 'time' | 'name'
-let customOrder = [];     // uid の配列（カスタム順）
+let sortMode = 'custom';
+let customOrder = [];
 const CUSTOM_ORDER_KEY = 'zenryoku_custom_order';
 
 // 通知設定（localStorage保存）
@@ -804,6 +977,9 @@ async function handleReport() {
   try {
     await db.collection('logs').add(logData);
     lastReportType = type;
+    // ★ アラーム連動（新規追加）
+    if (type === 'sleep') alarmOnSleep();
+    else if (type === 'wake') alarmOnWake();
     updateReportButton();
     showReportResult(type, isOnTime);
     showToast('報告を送信しました！');
@@ -1020,7 +1196,7 @@ function renderStatusCard(u) {
   const isSleeping  = u.type === 'sleep';
   const stateClass  = isSleeping ? 'sleeping' : 'awake';
   const badgeLabel  = isSleeping ? '睡眠中' : '起床中';
-  const typeLabel   = isSleeping ? '就寝' : '起床';  // ← 変更箇所
+  const typeLabel   = isSleeping ? '就寝' : '起床';
   const goalIcon    = isSleeping ? '🌙' : '☀️';
   const goalLabel   = isSleeping ? '就寝目標' : '起床目標';
 
@@ -1075,7 +1251,7 @@ function renderStatusCard(u) {
 }
 
 // ============================================================
-//  DRAG & DROP（カスタム並び替え）
+//  DRAG & DROP
 // ============================================================
 let dragSrcEl = null;
 
@@ -1236,6 +1412,404 @@ function showToast(msg) {
 function escapeHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+/* ================================================================
+   ALARM  —  完全版（Service Worker バックグラウンド連動）
+================================================================ */
+
+/* ----  状態管理  ---- */
+let alarmState    = 'off';
+let alarmSource   = 'goal';
+let alarmTargetMs = null;
+let alarmTimerId  = null;
+
+/* ----  Web Audio  ---- */
+let audioCtx          = null;
+let alarmBeepInterval = null;
+
+/* ★ 音量（0.0〜1.0）、初期値 70%  */
+let alarmVolume = 0.7;
+
+/* ★ 音量スライダーのイベントハンドラ */
+function onAlarmVolumeChange(val) {
+  alarmVolume = val / 100;
+  // 数値ラベル更新
+  document.getElementById('alarm-volume-val').textContent = val + '%';
+  // スライダーのグラデーション（塗り済み部分）を CSS custom property で更新
+  const slider = document.getElementById('alarm-volume');
+  if (slider) slider.style.setProperty('--vol', val + '%');
+  // 鳴動中なら音量を即反映（一旦停止して再開）
+  if (alarmState === 'ringing') {
+    stopAlarmSound();
+    startAlarmSound();
+  }
+}
+
+function getAudioCtx() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch(e) { console.warn('[Alarm] AudioContext 初期化失敗:', e); }
+  }
+  return audioCtx;
+}
+function startAlarmSound() {
+  stopAlarmSound();
+  playBeepPattern();
+  alarmBeepInterval = setInterval(playBeepPattern, 2000);
+}
+function playBeepPattern() {
+  const ctx = getAudioCtx();
+  if (!ctx) return;
+  [0, 0.25, 0.5].forEach((offset, i) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = i % 2 === 0 ? 880 : 1100;
+    const t = ctx.currentTime + offset;
+    gain.gain.setValueAtTime(0, t);
+    // ★ alarmVolume を使用（スマホ側の音量設定に依存しない独自音量）
+    gain.gain.linearRampToValueAtTime(alarmVolume, t + 0.02);
+    gain.gain.linearRampToValueAtTime(0, t + 0.18);
+    osc.start(t); osc.stop(t + 0.2);
+  });
+}
+function stopAlarmSound() {
+  if (alarmBeepInterval) { clearInterval(alarmBeepInterval); alarmBeepInterval = null; }
+}
+
+/* ----  ソース切り替え  ---- */
+function setAlarmSource(src) {
+  alarmSource = src;
+  document.getElementById('alarm-src-goal').classList.toggle('active', src === 'goal');
+  document.getElementById('alarm-src-custom').classList.toggle('active', src === 'custom');
+  document.getElementById('alarm-goal-display').style.display   = src === 'goal'   ? 'flex' : 'none';
+  document.getElementById('alarm-custom-display').style.display = src === 'custom' ? 'flex' : 'none';
+  updateAlarmGoalText();
+}
+function updateAlarmGoalText() {
+  const t  = userProfile?.goalWake || '未設定';
+  const el = document.getElementById('alarm-goal-time-text');
+  if (!el) return;
+  el.textContent = t;
+  el.className   = 'alarm-time-display' + (t === '未設定' ? ' inactive' : '');
+}
+
+/* ----  目標時刻の解決  ---- */
+function resolveAlarmTimeStr() {
+  if (alarmSource === 'goal') {
+    const t = userProfile?.goalWake;
+    if (!t) { showToast('先に設定タブで目標起床時刻を設定してください'); return null; }
+    return t;
+  } else {
+    const t = document.getElementById('alarm-custom-input').value;
+    if (!t) { showToast('時刻を入力してください'); return null; }
+    return t;
+  }
+}
+function calcNextTargetMs(timeStr) {
+  const [h, m] = timeStr.split(':').map(Number);
+  const now    = new Date();
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  return target.getTime();
+}
+
+/* ----  アラームをセット  ---- */
+function setAlarm() {
+  try { getAudioCtx()?.resume(); } catch(_) {}
+  const timeStr = resolveAlarmTimeStr();
+  if (!timeStr) return;
+  alarmTargetMs = calcNextTargetMs(timeStr);
+  alarmState    = 'set';
+  updateAlarmUI();
+  startAlarmCountdown();
+  swSetAlarm(alarmTargetMs);
+  showToast(`⏰ アラームをセットしました（${timeStr}）`);
+}
+
+/* ----  アラーム解除  ---- */
+function cancelAlarm() {
+  const wasSnooze = (alarmState === 'snooze');
+  alarmState    = 'off';
+  alarmTargetMs = null;
+  stopAlarmCountdown();
+  stopAlarmSound();
+  updateAlarmUI();
+  swCancelAlarm();
+  showToast(wasSnooze ? 'スヌーズを解除しました' : 'アラームを解除しました');
+}
+
+/* ----  アラーム停止（起床ボタン）  ---- */
+function stopAlarm() {
+  alarmState    = 'off';
+  alarmTargetMs = null;
+  stopAlarmCountdown();
+  stopAlarmSound();
+  updateAlarmUI();
+  swCancelAlarm();
+  showToast('✅ おはようございます！');
+}
+
+/* ----  スヌーズ（5分後）  ---- */
+function snoozeAlarm(minutes = 5) {
+  const snoozeMs = Date.now() + minutes * 60 * 1000;
+  alarmTargetMs  = snoozeMs;
+  alarmState     = 'snooze';
+  stopAlarmSound();
+  stopAlarmCountdown();
+  updateAlarmUI();
+  startAlarmCountdown();
+  swSetAlarm(snoozeMs);
+  showToast(`💤 ${minutes}分後に再アラームします`);
+}
+
+/* ----  カウントダウン  ---- */
+function startAlarmCountdown() {
+  stopAlarmCountdown();
+  alarmTimerId = setInterval(tickAlarm, 1000);
+  tickAlarm();
+}
+function stopAlarmCountdown() {
+  if (alarmTimerId !== null) { clearInterval(alarmTimerId); alarmTimerId = null; }
+}
+function tickAlarm() {
+  if (!alarmTargetMs) return;
+  const diff = alarmTargetMs - Date.now();
+  if (diff <= 0) {
+    if (alarmState !== 'ringing') {
+      alarmState = 'ringing';
+      stopAlarmCountdown();
+      updateAlarmUI();
+      startAlarmSound();
+    }
+    return;
+  }
+  const totalSec = Math.floor(diff / 1000);
+  const hh = Math.floor(totalSec / 3600);
+  const mm = Math.floor((totalSec % 3600) / 60);
+  const ss = totalSec % 60;
+  const txt = hh > 0
+    ? `${hh}時間${String(mm).padStart(2,'0')}分${String(ss).padStart(2,'0')}秒`
+    : `${mm}分${String(ss).padStart(2,'0')}秒`;
+  const cdEl = document.getElementById('alarm-countdown-text');
+  if (cdEl) cdEl.textContent = txt;
+}
+
+/* ----  UI 同期  ---- */
+function updateAlarmUI() {
+  const card         = document.getElementById('alarm-card');
+  const badge        = document.getElementById('alarm-status-badge');
+  const normal       = document.getElementById('alarm-actions-normal');
+  const setEl        = document.getElementById('alarm-actions-set');
+  const ringing      = document.getElementById('alarm-actions-ringing');
+  const countdown    = document.getElementById('alarm-countdown');
+  const snoozeBanner = document.getElementById('snooze-banner');
+  if (!card) return;
+
+  card.className = 'alarm-card';
+  badge.className = 'alarm-status-badge';
+  snoozeBanner.classList.remove('show');
+
+  if (alarmState === 'off') {
+    badge.textContent = 'オフ'; badge.classList.add('off');
+    normal.style.display  = 'flex'; setEl.style.display = 'none';
+    ringing.style.display = 'none'; countdown.style.display = 'none';
+
+  } else if (alarmState === 'set') {
+    const timeStr = alarmSource === 'goal'
+      ? (userProfile?.goalWake || '--:--')
+      : document.getElementById('alarm-custom-input').value;
+    badge.textContent = `${timeStr} にセット中`; badge.classList.add('set');
+    card.classList.add('alarm-active');
+    normal.style.display  = 'none'; setEl.style.display = 'flex';
+    ringing.style.display = 'none'; countdown.style.display = 'block';
+
+  } else if (alarmState === 'snooze') {
+    const snoozeTimeStr = alarmTargetMs
+      ? new Date(alarmTargetMs).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
+      : '--:--';
+    badge.textContent = '💤 スヌーズ中'; badge.classList.add('set');
+    card.classList.add('alarm-active');
+    normal.style.display  = 'none'; setEl.style.display = 'flex';
+    ringing.style.display = 'none'; countdown.style.display = 'block';
+    const snoozeEl = document.getElementById('snooze-time-text');
+    if (snoozeEl) snoozeEl.textContent = snoozeTimeStr;
+    snoozeBanner.classList.add('show');
+
+  } else if (alarmState === 'ringing') {
+    badge.textContent = '🔔 鳴動中！'; badge.classList.add('ringing');
+    card.classList.add('alarm-ringing');
+    normal.style.display  = 'none'; setEl.style.display = 'none';
+    ringing.style.display = 'flex'; countdown.style.display = 'none';
+    snoozeBanner.classList.remove('show');
+  }
+}
+
+/* ----  就寝報告連動 → 自動セット  ---- */
+function alarmOnSleep() {
+  if (alarmState !== 'off') return;
+  try { getAudioCtx()?.resume(); } catch(_) {}
+  const timeStr = resolveAlarmTimeStr();
+  if (!timeStr) return;
+  alarmTargetMs = calcNextTargetMs(timeStr);
+  alarmState    = 'set';
+  updateAlarmUI();
+  startAlarmCountdown();
+  swSetAlarm(alarmTargetMs);
+  showToast(`⏰ アラームを自動セットしました（${timeStr}）`);
+}
+
+/* ----  ★ 起床報告連動 → アラーム自動停止  ---- */
+function alarmOnWake() {
+  if (alarmState === 'ringing') {
+    // 鳴動中なら完全停止
+    stopAlarm();
+  } else if (alarmState === 'set' || alarmState === 'snooze') {
+    // セット済み/スヌーズ中なら解除
+    alarmState    = 'off';
+    alarmTargetMs = null;
+    stopAlarmCountdown();
+    stopAlarmSound();
+    updateAlarmUI();
+    swCancelAlarm();
+    showToast('☀️ 起床報告に合わせてアラームを解除しました');
+  }
+  // 'off' の場合は何もしない
+}
+
+/* ================================================================
+   SERVICE WORKER 管理
+================================================================ */
+let swRegistration = null;
+let swReady        = false;
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) {
+    updateSwStatusBadge('ng', 'SW非対応ブラウザ'); return;
+  }
+  try {
+    swRegistration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+    console.log('[SW] 登録完了:', swRegistration.scope);
+    navigator.serviceWorker.addEventListener('message', onSwMessage);
+    await waitForController();
+    swReady = true;
+    updateSwStatusBadge('ok', 'バックグラウンド保護 有効');
+    swQueryAlarmStatus();
+  } catch(e) {
+    console.warn('[SW] 登録失敗:', e);
+    updateSwStatusBadge('ng', 'SW登録失敗（HTTPS必要）');
+  }
+}
+
+function waitForController() {
+  return new Promise((resolve) => {
+    if (navigator.serviceWorker.controller) { resolve(); return; }
+    const handler = () => {
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.removeEventListener('controllerchange', handler);
+        resolve();
+      }
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', handler);
+    setTimeout(resolve, 5000);
+  });
+}
+
+function onSwMessage(event) {
+  const { type, payload } = event.data || {};
+  switch (type) {
+    case 'ALARM_FIRE':
+      alarmState = 'ringing'; alarmTargetMs = null;
+      stopAlarmCountdown(); stopAlarmSound(); updateAlarmUI();
+      if (document.visibilityState === 'visible') {
+        try { getAudioCtx()?.resume().then(() => startAlarmSound()); } catch(_) {}
+      }
+      showToast('⏰ 起床時刻です！');
+      break;
+    case 'ALARM_STOP_FROM_NOTIF':
+      stopAlarm(); break;
+    case 'ALARM_SNOOZE':
+      alarmTargetMs = payload?.targetMs ?? (Date.now() + 5 * 60 * 1000);
+      alarmState = 'snooze';
+      stopAlarmSound(); stopAlarmCountdown(); updateAlarmUI(); startAlarmCountdown();
+      showToast('💤 5分後に再アラームします');
+      break;
+    case 'ALARM_STATUS':
+      if (event.data.active && event.data.targetMs && event.data.targetMs > Date.now()) {
+        alarmTargetMs = event.data.targetMs; alarmState = 'set';
+        updateAlarmUI(); startAlarmCountdown();
+      }
+      break;
+    case 'ALARM_SET_ACK':
+      console.log('[SW] ALARM_SET_ACK:', new Date(payload.targetMs).toLocaleString('ja-JP')); break;
+    case 'PONG':
+      console.log('[SW] PONG — version:', event.data.swVersion); break;
+  }
+}
+
+function swPostMessage(msg) {
+  const ctrl = navigator.serviceWorker?.controller;
+  if (!ctrl) { console.warn('[SW] controller なし:', msg.type); return false; }
+  ctrl.postMessage(msg); return true;
+}
+function swSetAlarm(targetMs) {
+  const ok = swPostMessage({ type: 'ALARM_SET', payload: { targetMs } });
+  if (!ok) updateSwStatusBadge('warn', 'ページ内のみ（SW未接続）');
+}
+function swCancelAlarm() { swPostMessage({ type: 'ALARM_CANCEL' }); }
+function swQueryAlarmStatus() { swPostMessage({ type: 'ALARM_QUERY' }); }
+
+function updateSwStatusBadge(level, text) {
+  const el1 = document.getElementById('alarm-sw-status');
+  if (el1) { el1.textContent = text; el1.className = `alarm-sw-val ${level}`; }
+  const el2 = document.getElementById('sw-global-status');
+  if (!el2) return;
+  const iconMap = { ok: '✅', warn: '⚠️', ng: '❌' };
+  el2.innerHTML = `
+    <span class="sw-status-badge ${level === 'ok' ? 'active' : level === 'warn' ? 'pending' : 'inactive'}">
+      <span class="sw-dot"></span>${iconMap[level] || ''} ${text}
+    </span>`;
+}
+
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    const result = await Notification.requestPermission();
+    if (result === 'granted') renderPermissionStatus();
+  }
+}
+
+/* ================================================================
+   ページイベント
+================================================================ */
+window.addEventListener('load', () => {
+  registerServiceWorker();
+  requestNotificationPermission();
+  updateSwStatusBadge('pending', 'SW確認中…');
+  // ★ 音量スライダーの初期グラデーションを設定
+  const slider = document.getElementById('alarm-volume');
+  if (slider) slider.style.setProperty('--vol', '70%');
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    if (swReady) swQueryAlarmStatus();
+    if ((alarmState === 'set' || alarmState === 'snooze') && !alarmTimerId) {
+      if (alarmTargetMs && alarmTargetMs <= Date.now()) {
+        alarmState = 'ringing'; updateAlarmUI();
+        try { getAudioCtx()?.resume().then(() => startAlarmSound()); } catch(_) {}
+      } else {
+        startAlarmCountdown();
+      }
+    }
+  }
+});
+
+window.addEventListener('focus', () => { if (swReady) swQueryAlarmStatus(); });
+window.addEventListener('beforeunload', () => { if (alarmState === 'off') swCancelAlarm(); });
+
 </script>
 </body>
 </html>
