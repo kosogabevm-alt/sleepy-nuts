@@ -4,19 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全力睡眠 — チーム睡眠管理</title>
-
-<!-- PWA -->
-<link rel="manifest" href="manifest.json">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="全力睡眠">
-<meta name="theme-color" content="#0a0e1a">
-<link rel="apple-touch-icon" href="icons/icon-192x192.png">
-<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
-<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
-
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -221,6 +208,7 @@
   .notif-row:last-child { margin-bottom: 0; }
   .notif-label { font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
   .notif-sub { font-size: 0.78rem; color: var(--text-2); margin-top: 0.15rem; }
+  /* トグルスイッチ */
   .toggle-wrap { position: relative; width: 50px; height: 26px; flex-shrink: 0; }
   .toggle-wrap input { opacity: 0; width: 0; height: 0; }
   .toggle-slider {
@@ -240,8 +228,8 @@
     margin-top: 0.75rem;
   }
   .notif-status-badge.granted { background: rgba(67,233,123,0.1); color: var(--green); border: 1px solid rgba(67,233,123,0.3); }
-  .notif-status-badge.denied  { background: rgba(255,77,109,0.1);  color: var(--red);   border: 1px solid rgba(255,77,109,0.3); }
-  .notif-status-badge.default { background: rgba(255,200,66,0.1);  color: var(--sun);   border: 1px solid rgba(255,200,66,0.3); }
+  .notif-status-badge.denied { background: rgba(255,77,109,0.1); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+  .notif-status-badge.default { background: rgba(255,200,66,0.1); color: var(--sun); border: 1px solid rgba(255,200,66,0.3); }
   .btn-notif-test {
     padding: 0.5rem 1rem; background: transparent;
     border: 1px solid var(--border); border-radius: var(--radius-sm);
@@ -250,24 +238,14 @@
   }
   .btn-notif-test:hover { border-color: var(--moon-2); color: var(--text); }
 
-  /* SW status badge */
-  .sw-status-badge {
-    display: inline-flex; align-items: center; gap: 0.4rem;
-    font-size: 0.72rem; padding: 0.25rem 0.65rem; border-radius: 20px;
-    margin-top: 0.5rem;
-  }
-  .sw-status-badge.active   { background: rgba(67,233,123,0.1); color: var(--green); border: 1px solid rgba(67,233,123,0.3); }
-  .sw-status-badge.inactive { background: rgba(255,77,109,0.1);  color: var(--red);   border: 1px solid rgba(255,77,109,0.3); }
-  .sw-status-badge.pending  { background: rgba(255,200,66,0.1);  color: var(--sun);   border: 1px solid rgba(255,200,66,0.3); }
-  .sw-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
-  /* ===== TIMELINE ===== */
+  /* ===== TIMELINE SECTION ===== */
   .timeline-section-label {
     font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-2);
     margin-bottom: 0.85rem; display: flex; align-items: center; gap: 0.5rem;
   }
   .timeline-section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
+  /* ===== 並び替えツールバー ===== */
   .sort-toolbar {
     display: flex; align-items: center; gap: 0.5rem;
     margin-bottom: 1rem; flex-wrap: wrap;
@@ -282,6 +260,7 @@
   .sort-btn.active { background: rgba(200,216,248,0.1); border-color: var(--moon-2); color: var(--moon); font-weight: 700; }
   .sort-btn:hover:not(.active) { border-color: var(--text-2); color: var(--text); }
 
+  /* ===== ステータスグリッド ===== */
   .status-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -299,7 +278,7 @@
   .status-card:active { cursor: grabbing; }
   .status-card:hover { transform: translateY(-2px); }
   .status-card.drag-over { border-color: var(--moon-2) !important; opacity: 0.7; }
-  .status-card.dragging  { opacity: 0.4; transform: scale(0.97); }
+  .status-card.dragging { opacity: 0.4; transform: scale(0.97); }
 
   .status-card.sleeping {
     background: linear-gradient(145deg, #0d1a35 0%, #111f3d 100%);
@@ -318,63 +297,84 @@
     letter-spacing: 0.06em; padding: 0.22rem 0.6rem; border-radius: 20px;
   }
   .card-status-badge.sleeping { background: rgba(79,130,255,0.15); color: #7ab0ff; border: 1px solid rgba(79,130,255,0.3); }
-  .card-status-badge.awake    { background: rgba(245,168,35,0.15); color: #f5c842; border: 1px solid rgba(245,168,35,0.3); }
+  .card-status-badge.awake { background: rgba(245,168,35,0.15); color: #f5c842; border: 1px solid rgba(245,168,35,0.3); }
   .status-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
   .status-dot.sleeping { background: #7ab0ff; animation: pulse 2s infinite; }
-  .status-dot.awake    { background: #f5c842; animation: pulse 2s infinite; }
+  .status-dot.awake { background: #f5c842; animation: pulse 2s infinite; }
 
+  /* ドラッグハンドル */
   .drag-handle {
     font-size: 1.1rem; color: var(--text-2); opacity: 0.5;
-    cursor: grab; padding: 0.1rem 0.2rem; user-select: none; transition: opacity 0.2s;
+    cursor: grab; padding: 0.1rem 0.2rem; user-select: none;
+    transition: opacity 0.2s;
   }
   .drag-handle:hover { opacity: 1; }
 
-  .card-identity { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+  /* 名前エリア */
+  .card-identity {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem;
+  }
   .card-avatar {
     width: 34px; height: 34px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 0.85rem; font-weight: 900; flex-shrink: 0;
   }
-  .card-avatar.sleeping { background: linear-gradient(135deg, #1e3a6e, #0a1f4e); border: 1.5px solid rgba(79,130,255,0.4); color: #a0c0ff; }
-  .card-avatar.awake    { background: linear-gradient(135deg, #5c3300, #3a2000); border: 1.5px solid rgba(245,168,35,0.4); color: #f5c842; }
+  .card-avatar.sleeping {
+    background: linear-gradient(135deg, #1e3a6e, #0a1f4e);
+    border: 1.5px solid rgba(79,130,255,0.4); color: #a0c0ff;
+  }
+  .card-avatar.awake {
+    background: linear-gradient(135deg, #5c3300, #3a2000);
+    border: 1.5px solid rgba(245,168,35,0.4); color: #f5c842;
+  }
   .card-name { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+  /* ★ 時刻・日付ブロック（ここだけ大きく） */
   .card-time-block {
     padding: 0.6rem 0.65rem; border-radius: 10px;
     background: rgba(0,0,0,0.25); margin-bottom: 0.5rem;
     display: flex; align-items: flex-end; gap: 0.5rem; justify-content: space-between;
   }
   .card-time-main { display: flex; flex-direction: column; gap: 0.05rem; }
-  .card-time-type-label { font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700; }
+  .card-time-type-label {
+    font-size: 0.75rem; letter-spacing: 0.05em; font-weight: 700;
+  }
   .card-time-type-label.sleeping { color: rgba(122,176,255,0.7); }
-  .card-time-type-label.awake    { color: rgba(245,200,66,0.7); }
-  .card-time-value { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 0.03em; line-height: 1; }
+  .card-time-type-label.awake { color: rgba(245,200,66,0.7); }
+  .card-time-value {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem;
+    letter-spacing: 0.03em; line-height: 1;
+  }
   .card-time-value.sleeping { color: #90b8ff; }
-  .card-time-value.awake    { color: #f5c842; }
+  .card-time-value.awake { color: #f5c842; }
   .card-date-chip {
     font-size: 0.8rem; font-weight: 700; padding: 0.22rem 0.55rem;
-    border-radius: 7px; align-self: flex-end; margin-bottom: 0.1rem; white-space: nowrap;
+    border-radius: 7px; align-self: flex-end; margin-bottom: 0.1rem;
+    white-space: nowrap;
   }
   .card-date-chip.sleeping { background: rgba(79,130,255,0.15); color: #7ab0ff; }
-  .card-date-chip.awake    { background: rgba(245,168,35,0.15); color: #f5c842; }
+  .card-date-chip.awake { background: rgba(245,168,35,0.15); color: #f5c842; }
 
+  /* 目標行 */
   .card-goal-row {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 0.3rem 0.6rem; border-radius: 8px; background: rgba(255,255,255,0.04); margin-bottom: 0.5rem;
+    padding: 0.3rem 0.6rem; border-radius: 8px; background: rgba(255,255,255,0.04);
+    margin-bottom: 0.5rem;
   }
   .card-goal-label { font-size: 0.72rem; color: var(--text-2); letter-spacing: 0.03em; }
   .card-goal-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 0.05em; line-height: 1; }
   .card-goal-value.sleeping { color: rgba(144,184,255,0.7); }
-  .card-goal-value.awake    { color: rgba(245,200,66,0.7); }
+  .card-goal-value.awake { color: rgba(245,200,66,0.7); }
 
+  /* 達成バッジ */
   .card-achieve-badge {
     display: inline-block; font-size: 0.75rem; font-weight: 700;
     padding: 0.3rem 0.65rem; border-radius: 20px; letter-spacing: 0.03em;
   }
   .card-achieve-badge.achieved { background: rgba(67,233,123,0.15); color: #43e97b; border: 1px solid rgba(67,233,123,0.35); }
-  .card-achieve-badge.missed   { background: rgba(79,172,254,0.15); color: #4facfe; border: 1px solid rgba(79,172,254,0.35); }
+  .card-achieve-badge.missed { background: rgba(79,172,254,0.15); color: #4facfe; border: 1px solid rgba(79,172,254,0.35); }
 
-  /* ===== 達成率 ===== */
+  /* ===== 達成率カード ===== */
   .achieve-card {
     background: var(--night-2); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 1rem 1.1rem; margin-bottom: 0.65rem; animation: fadeIn 0.3s ease;
@@ -394,10 +394,10 @@
   .achieve-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
   .achieve-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
   .achieve-bar-fill.sleep { background: linear-gradient(90deg, #3a6ecc, #7ab0ff); }
-  .achieve-bar-fill.wake  { background: linear-gradient(90deg, #c87c00, #f5c842); }
+  .achieve-bar-fill.wake { background: linear-gradient(90deg, #c87c00, #f5c842); }
   .achieve-bar-pct { font-family: 'Bebas Neue', sans-serif; font-size: 0.95rem; letter-spacing: 0.04em; width: 2.8rem; text-align: right; flex-shrink: 0; }
   .achieve-bar-pct.sleep { color: #90b8ff; }
-  .achieve-bar-pct.wake  { color: #f5c842; }
+  .achieve-bar-pct.wake { color: #f5c842; }
   .achieve-bar-count { font-size: 0.68rem; color: var(--text-2); width: 3.5rem; text-align: right; flex-shrink: 0; }
   .achieve-empty { text-align: center; color: var(--text-2); font-size: 0.85rem; padding: 2rem 0; }
 
@@ -410,123 +410,17 @@
     background: var(--night-2); border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 0.75rem 1.25rem; font-size: 0.9rem; color: var(--text);
     opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap;
-    max-width: 90vw; text-align: center;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 480px) { .report-btn { width: 170px; height: 170px; } .current-time { font-size: 3rem; } }
-
-  /* ===== ALARM ===== */
-  .alarm-card {
-    background: var(--night-2); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
-    transition: border-color 0.4s, box-shadow 0.4s;
-  }
-  .alarm-card.alarm-active {
-    border-color: rgba(245,168,35,0.5);
-    box-shadow: 0 0 20px rgba(245,168,35,0.15);
-    animation: alarmGlow 2s ease-in-out infinite;
-  }
-  .alarm-card.alarm-ringing {
-    border-color: rgba(255,77,109,0.7);
-    box-shadow: 0 0 30px rgba(255,77,109,0.3);
-    animation: alarmRingGlow 0.5s ease-in-out infinite;
-  }
-  @keyframes alarmGlow {
-    0%, 100% { box-shadow: 0 0 20px rgba(245,168,35,0.15); }
-    50%       { box-shadow: 0 0 35px rgba(245,168,35,0.30); }
-  }
-  @keyframes alarmRingGlow {
-    0%, 100% { box-shadow: 0 0 30px rgba(255,77,109,0.3); }
-    50%       { box-shadow: 0 0 55px rgba(255,77,109,0.6); }
-  }
-  .alarm-header {
-    display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
-  }
-  .alarm-title { font-size: 0.8rem; color: var(--text-2); letter-spacing: 0.1em; text-transform: uppercase; }
-  .alarm-status-badge {
-    font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.65rem; border-radius: 20px;
-  }
-  .alarm-status-badge.off     { background: rgba(255,255,255,0.05); color: var(--text-2); border: 1px solid var(--border); }
-  .alarm-status-badge.set     { background: rgba(245,168,35,0.15); color: var(--sun); border: 1px solid rgba(245,168,35,0.4); }
-  .alarm-status-badge.ringing { background: rgba(255,77,109,0.2); color: var(--red); border: 1px solid rgba(255,77,109,0.5); animation: pulse 0.5s infinite; }
-  .alarm-time-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-  .alarm-time-display {
-    font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; letter-spacing: 0.05em; line-height: 1;
-    color: var(--sun); flex: 1;
-  }
-  .alarm-time-display.inactive { color: var(--text-2); }
-  .alarm-source-tabs {
-    display: flex; background: var(--night-3); border-radius: 8px; padding: 3px; margin-bottom: 0.75rem;
-  }
-  .alarm-source-tab {
-    flex: 1; padding: 0.4rem 0.5rem; border: none; background: transparent;
-    color: var(--text-2); font-family: inherit; font-size: 0.78rem;
-    border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center;
-  }
-  .alarm-source-tab.active { background: var(--night-4); color: var(--moon); font-weight: 700; }
-  .alarm-custom-input-row { display: flex; align-items: center; gap: 0.5rem; }
-  .alarm-custom-label { font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
-  .alarm-actions { display: flex; gap: 0.65rem; }
-  .btn-alarm-set {
-    flex: 1; padding: 0.7rem; background: linear-gradient(135deg, #1a4a8a, #2a6abf);
-    border: none; border-radius: var(--radius-sm); color: white;
-    font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
-  }
-  .btn-alarm-set:hover { opacity: 0.85; }
-  .btn-alarm-cancel {
-    padding: 0.7rem 1rem; background: transparent;
-    border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-2);
-    font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
-  }
-  .btn-alarm-cancel:hover { border-color: var(--text-2); color: var(--text); }
-  .btn-alarm-stop {
-    flex: 1; padding: 0.85rem;
-    background: linear-gradient(135deg, #8a1a1a, #bf2a2a);
-    border: none; border-radius: var(--radius-sm); color: white;
-    font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer;
-    transition: transform 0.1s; animation: pulse 0.6s infinite;
-    letter-spacing: 0.05em;
-  }
-  .btn-alarm-stop:active { transform: scale(0.96); }
-  .alarm-countdown { font-size: 0.8rem; color: var(--text-2); margin-top: 0.6rem; text-align: center; }
-  .alarm-countdown span { color: var(--sun); font-weight: 700; }
-
-  /* SW連携ステータス行 */
-  .alarm-sw-row {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-top: 0.6rem; padding: 0.45rem 0.75rem; border-radius: 8px;
-    background: rgba(255,255,255,0.03); border: 1px solid var(--border);
-    font-size: 0.72rem;
-  }
-  .alarm-sw-label { color: var(--text-2); }
-  .alarm-sw-val   { font-weight: 700; }
-  .alarm-sw-val.ok     { color: var(--green); }
-  .alarm-sw-val.warn   { color: var(--sun); }
-  .alarm-sw-val.ng     { color: var(--red); }
-
-  /* スヌーズバナー */
-  .snooze-banner {
-    display: none; align-items: center; justify-content: space-between;
-    padding: 0.6rem 0.9rem; border-radius: 10px;
-    background: rgba(245,168,35,0.1); border: 1px solid rgba(245,168,35,0.3);
-    margin-top: 0.75rem; font-size: 0.82rem;
-  }
-  .snooze-banner.show { display: flex; }
-  .snooze-banner span { color: var(--sun); font-weight: 700; }
-  .btn-snooze-cancel {
-    background: transparent; border: 1px solid rgba(245,168,35,0.4); border-radius: 6px;
-    color: var(--sun); font-family: inherit; font-size: 0.75rem; padding: 0.25rem 0.6rem;
-    cursor: pointer; transition: background 0.2s;
-  }
-  .btn-snooze-cancel:hover { background: rgba(245,168,35,0.1); }
 </style>
 </head>
 <body>
 <div id="app">
-  <!-- ============================  AUTH  ============================ -->
+  <!-- AUTH -->
   <div id="auth-screen">
     <div class="auth-logo">全力睡眠</div>
     <div class="auth-tagline">チームで作る最強の睡眠習慣</div>
@@ -565,7 +459,7 @@
     </div>
   </div>
 
-  <!-- ============================  MAIN  ============================ -->
+  <!-- MAIN -->
   <div id="main-screen">
     <div class="header">
       <div class="header-logo">全力睡眠</div>
@@ -581,7 +475,7 @@
       <button class="tab-btn" onclick="switchTab('settings', this)">⚙️ 設定</button>
     </div>
 
-    <!-- ========  報告タブ  ======== -->
+    <!-- 報告タブ -->
     <div class="tab-content active" id="tab-report">
       <div class="time-display">
         <div class="current-time" id="clock">00:00</div>
@@ -603,90 +497,33 @@
         </button>
       </div>
       <div class="report-result" id="report-result"></div>
-
-      <!-- ======  アラームカード  ====== -->
-      <div class="alarm-card" id="alarm-card">
-        <div class="alarm-header">
-          <span class="alarm-title">⏰ アラーム</span>
-          <span class="alarm-status-badge off" id="alarm-status-badge">オフ</span>
-        </div>
-
-        <!-- ソース切り替え -->
-        <div class="alarm-source-tabs">
-          <button class="alarm-source-tab active" id="alarm-src-goal"   onclick="setAlarmSource('goal')">🌅 目標起床時刻を使う</button>
-          <button class="alarm-source-tab"         id="alarm-src-custom" onclick="setAlarmSource('custom')">✏️ 時刻を指定</button>
-        </div>
-
-        <!-- 目標時刻表示 -->
-        <div id="alarm-goal-display" class="alarm-time-row">
-          <div class="alarm-time-display inactive" id="alarm-goal-time-text">--:--</div>
-          <div style="font-size:0.78rem;color:var(--text-2);line-height:1.5">設定タブの<br>目標起床時刻を使用</div>
-        </div>
-        <!-- カスタム入力 -->
-        <div id="alarm-custom-display" style="display:none" class="alarm-time-row">
-          <div class="alarm-custom-input-row" style="width:100%">
-            <span class="alarm-custom-label">起床時刻：</span>
-            <input class="time-input" type="time" id="alarm-custom-input" value="06:00" style="flex:1">
-          </div>
-        </div>
-
-        <!-- 操作ボタン（通常時） -->
-        <div class="alarm-actions" id="alarm-actions-normal">
-          <button class="btn-alarm-set" onclick="setAlarm()">🔔 アラームをセット</button>
-        </div>
-        <!-- 操作ボタン（セット済み） -->
-        <div class="alarm-actions" id="alarm-actions-set" style="display:none">
-          <button class="btn-alarm-set" style="background:linear-gradient(135deg,#1a3a1a,#2a6a2a)" onclick="setAlarm()">🔁 更新</button>
-          <button class="btn-alarm-cancel" onclick="cancelAlarm()">✕ 解除</button>
-        </div>
-        <!-- 操作ボタン（鳴動中） -->
-        <div class="alarm-actions" id="alarm-actions-ringing" style="display:none">
-          <button class="btn-alarm-stop" onclick="stopAlarm()">🛑 アラームを止める</button>
-        </div>
-
-        <!-- スヌーズバナー -->
-        <div class="snooze-banner" id="snooze-banner">
-          <span>💤 スヌーズ中 … <span id="snooze-time-text">--:--</span> に再アラーム</span>
-          <button class="btn-snooze-cancel" onclick="cancelAlarm()">解除</button>
-        </div>
-
-        <div class="alarm-countdown" id="alarm-countdown" style="display:none">
-          アラームまで <span id="alarm-countdown-text">--</span>
-        </div>
-
-        <!-- SW連携ステータス -->
-        <div class="alarm-sw-row">
-          <span class="alarm-sw-label">🛡 バックグラウンド保護</span>
-          <span class="alarm-sw-val" id="alarm-sw-status">確認中…</span>
-        </div>
-
-        <div style="font-size:0.7rem;color:var(--text-2);margin-top:0.6rem;text-align:center" id="alarm-footer-note">
-          ※ バックグラウンド保護が有効なら画面オフでも起動します
-        </div>
-      </div>
     </div>
 
-    <!-- ========  メンバータブ  ======== -->
+    <!-- メンバータブ -->
     <div class="tab-content" id="tab-timeline">
       <div class="timeline-section-label">メンバーの現在状態</div>
+
+      <!-- 並び替えツールバー -->
       <div class="sort-toolbar">
         <span class="sort-label">並び替え：</span>
         <button class="sort-btn active" id="sort-custom" onclick="setSortMode('custom')">⠿ カスタム</button>
         <button class="sort-btn" id="sort-status" onclick="setSortMode('status')">💤 状態順</button>
-        <button class="sort-btn" id="sort-time"   onclick="setSortMode('time')">🕐 時刻順</button>
-        <button class="sort-btn" id="sort-name"   onclick="setSortMode('name')">🔤 名前順</button>
+        <button class="sort-btn" id="sort-time" onclick="setSortMode('time')">🕐 時刻順</button>
+        <button class="sort-btn" id="sort-name" onclick="setSortMode('name')">🔤 名前順</button>
       </div>
       <div style="font-size:0.72rem;color:var(--text-2);margin-bottom:0.85rem" id="sort-hint">
         ⠿ カードをドラッグして並び順を変更できます
       </div>
+
       <div id="status-grid" class="status-grid">
         <div class="loading" style="grid-column:1/-1">読み込み中…</div>
       </div>
+
       <div class="timeline-section-label" style="margin-top:0.5rem">直近1週間の達成率</div>
       <div id="achievement-list"><div class="loading">読み込み中…</div></div>
     </div>
 
-    <!-- ========  設定タブ  ======== -->
+    <!-- 設定タブ -->
     <div class="tab-content" id="tab-settings">
       <div class="settings-card">
         <div class="settings-title">プロフィール設定</div>
@@ -711,9 +548,10 @@
         <span class="save-msg" id="save-msg">✓ 保存しました！</span>
       </div>
 
-      <!-- 通知設定 -->
+      <!-- 通知設定カード -->
       <div class="notif-card">
         <div class="settings-title">🔔 通知設定</div>
+
         <div class="notif-row">
           <div>
             <div class="notif-label">🌙 仲間の就寝報告</div>
@@ -724,6 +562,7 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+
         <div class="notif-row">
           <div>
             <div class="notif-label">☀️ 仲間の起床報告</div>
@@ -734,55 +573,103 @@
             <span class="toggle-slider"></span>
           </label>
         </div>
+
         <div id="notif-permission-status"></div>
         <button class="btn-notif-test" onclick="sendTestNotif()">🔔 テスト通知を送る</button>
-
-        <!-- SW ステータス -->
-        <div style="margin-top:1rem">
-          <div class="settings-title">🛡 Service Worker 状態</div>
-          <div id="sw-global-status" style="font-size:0.82rem;color:var(--text-2)">確認中…</div>
-        </div>
         <div style="font-size:0.72rem;color:var(--text-2);margin-top:0.6rem">
-          ※ アプリを開いている間のみ Firestore 通知が届きます
+          ※ アプリを開いている間のみ通知が届きます
         </div>
       </div>
     </div>
   </div>
-</div><!-- #app -->
+</div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ============================================================
-     Firebase ローダー
-============================================================ -->
 <script>
-(function() {
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = src; s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
+  let swRegistration = null;
+
+  // 1. Firebaseのログイン状態を「アプリを閉じても維持する」設定に変更
+  // (firebase.initializeApp の後に実行されるようにしてください)
+  try {
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+      .then(() => {
+        console.log("Firebase: ログイン状態の永続化をLOCALに設定しました");
+        
+        // ログイン状態の監視
+        firebase.auth().onAuthStateChanged((user) => {
+          if (user) {
+            console.log("ログイン中:", user.email);
+            // ここにメイン画面を表示する既存のロジックがあれば記述
+          } else {
+            console.log("ログアウト状態、または読み込み中");
+            // 完全にログアウトしている場合のみログイン画面を出す
+          }
+        });
+      })
+      .catch((error) => {
+        console.error("Persistence設定失敗:", error);
+      });
+  } catch(e) {
+    console.log("Firebase Auth未初期化、または読込順の調整が必要です:", e);
+  }
+
+  // 2. サービスワーカーの登録
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(registration => {
+          console.log('ServiceWorker登録成功');
+          swRegistration = registration;
+        })
+        .catch(error => {
+          console.error('ServiceWorker登録失敗:', error);
+        });
     });
   }
-  const FB_VER = '10.12.0';
-  const PKGS = ['firebase-app-compat','firebase-auth-compat','firebase-firestore-compat'];
-  async function loadFirebase() {
-    try { for (const p of PKGS) await loadScript(`https://www.gstatic.com/firebasejs/${FB_VER}/${p}.js`); return true; } catch(_) {}
-    try { for (const p of PKGS) await loadScript(`https://unpkg.com/${p}@${FB_VER}/dist/${p}.js`); return true; } catch(_) {}
-    try { for (const p of PKGS) await loadScript(`https://cdn.jsdelivr.net/npm/${p}@${FB_VER}/dist/${p}.min.js`); return true; } catch(_) {}
-    return false;
+
+  // 3. アラームをセットするメイン関数（ボタンのonclickなどから呼び出してください）
+  function testBackgroundAlarm() {
+    // ユーザーに通知の許可を求める（これを許可しないと音もバイブも鳴りません）
+    if (Notification.permission !== 'granted') {
+      Notification.requestPermission().then(permission => {
+        if (permission === 'granted') {
+          alert('通知が許可されました！もう一度アラームボタンを押してください。');
+        } else {
+          alert('通知がブロックされています。ブラウザの設定から通知を許可してください。');
+        }
+      });
+      return;
+    }
+
+    // サービスワーカーが準備できているか確認
+    if (swRegistration && navigator.serviceWorker.controller) {
+      
+      // テスト用に「10秒後（10000ミリ秒）」を指定
+      const targetDelay = 10000; 
+
+      alert('アラームを10秒後にセットしました！画面を消すか、アプリを閉じてテストしてください。');
+
+      // サービスワーカー（裏側）に「10秒後に通知を出せ」と命令を送る
+      navigator.serviceWorker.controller.postMessage({
+        action: 'startAlarm',
+        delay: targetDelay
+      });
+
+    } else {
+      alert('サービスワーカーがまだ準備できていません。ページを再読み込み（Ctrl+F5）してください。');
+    }
   }
-  window.__firebaseReady = loadFirebase();
-})();
 </script>
 
-<!-- ============================================================
-     アプリ本体
-============================================================ -->
+<div style="text-align: center; margin-top: 20px;">
+  <button onclick="testBackgroundAlarm()" style="padding: 10px 20px; font-size: 16px; cursor: pointer;">
+    ⏰ バックグラウンドアラームテスト (10秒後)
+  </button>
+</div>
+</script>
+
 <script>
-/* ----------------------------------------------------------------
-   Firebase 設定
----------------------------------------------------------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyA6pL850vO-zKRfy0LzTjK_I5aYEllbbMk",
   authDomain: "sleepy-nuts.firebaseapp.com",
@@ -804,32 +691,32 @@ window.__firebaseReady.then((loaded) => {
   auth.onAuthStateChanged(onAuthStateChanged_handler);
 });
 
-/* ================================================================
-   STATE
-================================================================ */
-let currentUser   = null;
-let userProfile   = null;
+// ============================================================
+//  STATE
+// ============================================================
+let currentUser = null;
+let userProfile = null;
 let unsubTimeline = null;
 let lastReportType = null;
 const userStatusMap = new Map();
 
 // 並び替え
-let sortMode    = 'custom';
-let customOrder = [];
+let sortMode = 'custom';  // 'custom' | 'status' | 'time' | 'name'
+let customOrder = [];     // uid の配列（カスタム順）
 const CUSTOM_ORDER_KEY = 'zenryoku_custom_order';
 
-// 通知設定
+// 通知設定（localStorage保存）
 let notifPrefs = { sleep: false, wake: false };
 const NOTIF_KEY = 'zenryoku_notif_prefs';
 
-/* ================================================================
-   AUTH
-================================================================ */
+// ============================================================
+//  AUTH
+// ============================================================
 function switchAuthTab(t) {
-  document.getElementById('login-form').style.display    = t === 'login'    ? 'block' : 'none';
-  document.getElementById('register-form').style.display = t === 'register' ? 'block' : 'none';
-  document.getElementById('tab-login').classList.toggle('active', t === 'login');
-  document.getElementById('tab-register').classList.toggle('active', t === 'register');
+  document.getElementById('login-form').style.display = t==='login'?'block':'none';
+  document.getElementById('register-form').style.display = t==='register'?'block':'none';
+  document.getElementById('tab-login').classList.toggle('active', t==='login');
+  document.getElementById('tab-register').classList.toggle('active', t==='register');
   document.getElementById('auth-error').style.display = 'none';
 }
 async function handleLogin() {
@@ -852,30 +739,26 @@ async function handleRegister() {
     });
   } catch(e) { showAuthError(getFirebaseErrorMsg(e.code)); }
 }
-function handleLogout() {
-  if (unsubTimeline) unsubTimeline();
-  swCancelAlarm();
-  auth.signOut();
-}
+function handleLogout() { if (unsubTimeline) unsubTimeline(); auth.signOut(); }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   el.textContent = msg; el.style.display = 'block';
 }
 function getFirebaseErrorMsg(code) {
   const map = {
-    'auth/user-not-found'       : 'メールアドレスが見つかりません',
-    'auth/wrong-password'       : 'パスワードが間違っています',
-    'auth/email-already-in-use' : 'このメールアドレスは既に登録されています',
-    'auth/weak-password'        : 'パスワードは6文字以上必要です',
-    'auth/invalid-email'        : 'メールアドレスの形式が正しくありません',
-    'auth/invalid-credential'   : 'メールアドレスまたはパスワードが間違っています',
+    'auth/user-not-found':'メールアドレスが見つかりません',
+    'auth/wrong-password':'パスワードが間違っています',
+    'auth/email-already-in-use':'このメールアドレスは既に登録されています',
+    'auth/weak-password':'パスワードは6文字以上必要です',
+    'auth/invalid-email':'メールアドレスの形式が正しくありません',
+    'auth/invalid-credential':'メールアドレスまたはパスワードが間違っています',
   };
   return map[code] || 'エラーが発生しました：' + code;
 }
 
-/* ================================================================
-   AUTH STATE
-================================================================ */
+// ============================================================
+//  AUTH STATE
+// ============================================================
 async function onAuthStateChanged_handler(user) {
   if (user) {
     currentUser = user;
@@ -892,23 +775,21 @@ async function onAuthStateChanged_handler(user) {
 }
 async function loadUserProfile() {
   const doc = await db.collection('users').doc(currentUser.uid).get();
-  userProfile = doc.exists
-    ? doc.data()
-    : { displayName: 'ユーザー', goalSleep: '23:00', goalWake: '06:00' };
+  userProfile = doc.exists ? doc.data() : { displayName:'ユーザー', goalSleep:'23:00', goalWake:'06:00' };
 }
 async function fetchLastReportType() {
   try {
     const snap = await db.collection('logs')
-      .where('uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(1).get();
+      .where('uid','==',currentUser.uid).orderBy('timestamp','desc').limit(1).get();
     lastReportType = snap.empty
-      ? ((new Date().getHours() >= 18 || new Date().getHours() < 9) ? 'wake' : 'sleep')
+      ? ((new Date().getHours()>=18||new Date().getHours()<9)?'wake':'sleep')
       : snap.docs[0].data().type;
   } catch(e) { lastReportType = 'wake'; }
 }
 
-/* ================================================================
-   SCREEN
-================================================================ */
+// ============================================================
+//  SCREEN
+// ============================================================
 function showAuthScreen() {
   document.getElementById('auth-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
@@ -919,40 +800,40 @@ function showMainScreen() {
   document.getElementById('main-screen').style.display = 'block';
   const name = userProfile.displayName || 'ユーザー';
   document.getElementById('user-name-display').textContent = name;
-  document.getElementById('user-avatar').textContent        = name.charAt(0);
-  document.getElementById('goal-sleep-input').value         = userProfile.goalSleep || '23:00';
-  document.getElementById('goal-wake-input').value          = userProfile.goalWake  || '06:00';
-  document.getElementById('display-name-input').value       = name;
+  document.getElementById('user-avatar').textContent = name.charAt(0);
+  document.getElementById('goal-sleep-input').value = userProfile.goalSleep || '23:00';
+  document.getElementById('goal-wake-input').value  = userProfile.goalWake  || '06:00';
+  document.getElementById('display-name-input').value = name;
   updateGoalDisplay();
   updateNotifUI();
-  updateAlarmGoalText();
   startClock();
   updateReportButton();
   subscribeTimeline();
   loadAchievementRates();
 }
 
-/* ================================================================
-   CLOCK
-================================================================ */
+// ============================================================
+//  CLOCK
+// ============================================================
 function startClock() { updateClock(); setInterval(updateClock, 1000); }
 function updateClock() {
   const now = new Date();
-  document.getElementById('clock').textContent =
-    String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('clock').textContent = h + ':' + m;
   const days = ['日','月','火','水','木','金','土'];
   document.getElementById('date-display').textContent =
     now.getFullYear()+'年'+(now.getMonth()+1)+'月'+now.getDate()+'日（'+days[now.getDay()]+'）';
 }
 
-/* ================================================================
-   REPORT BUTTON
-================================================================ */
+// ============================================================
+//  REPORT BUTTON
+// ============================================================
 function updateReportButton() {
-  const btn   = document.getElementById('report-btn');
-  const icon  = document.getElementById('btn-icon');
+  const btn = document.getElementById('report-btn');
+  const icon = document.getElementById('btn-icon');
   const label = document.getElementById('btn-label');
-  const sub   = document.getElementById('btn-sublabel');
+  const sub = document.getElementById('btn-sublabel');
   if (lastReportType === 'wake') {
     btn.className = 'report-btn night-mode'; icon.textContent = '🌙';
     label.textContent = 'シュウシン'; sub.textContent = 'タップして就寝報告';
@@ -962,12 +843,12 @@ function updateReportButton() {
   }
 }
 
-/* ================================================================
-   HANDLE REPORT
-================================================================ */
+// ============================================================
+//  HANDLE REPORT
+// ============================================================
 async function handleReport() {
   if (!currentUser || !userProfile) return;
-  const now  = new Date();
+  const now = new Date();
   const type = (lastReportType === 'wake') ? 'sleep' : 'wake';
   const goalTime = type === 'sleep' ? userProfile.goalSleep : userProfile.goalWake;
   const isOnTime = goalTime ? checkOnTime(now, goalTime, type) : null;
@@ -984,40 +865,40 @@ async function handleReport() {
     updateReportButton();
     showReportResult(type, isOnTime);
     showToast('報告を送信しました！');
-    // アラーム連動
-    if (type === 'sleep') alarmOnSleep();
-    else                   alarmOnWake();
   } catch(e) { showToast('エラー：' + e.message); }
 }
 function checkOnTime(now, goalStr, type) {
   const [gh, gm] = goalStr.split(':').map(Number);
-  const goalMinutes = gh * 60 + gm;
-  const nowMinutes  = now.getHours() * 60 + now.getMinutes();
+  const goalMinutes = gh*60+gm;
+  const nowMinutes  = now.getHours()*60+now.getMinutes();
   if (type === 'sleep') {
-    const adjNow  = now.getHours() < 12 ? nowMinutes + 1440 : nowMinutes;
-    const adjGoal = gh < 12 ? goalMinutes + 1440 : goalMinutes;
+    const adjNow  = now.getHours()<12 ? nowMinutes+1440 : nowMinutes;
+    const adjGoal = gh<12 ? goalMinutes+1440 : goalMinutes;
     return adjNow <= adjGoal;
   } else { return nowMinutes <= goalMinutes; }
 }
 function showReportResult(type, isOnTime) {
   const el = document.getElementById('report-result');
-  if (isOnTime === null) { el.style.display = 'none'; return; }
+  if (isOnTime === null) { el.style.display='none'; return; }
   if (isOnTime) {
     el.className = 'report-result success';
-    el.textContent = '🔴 目標達成！全力' + (type === 'sleep' ? '睡眠' : '起床') + '！';
+    el.textContent = '🔴 目標達成！全力'+(type==='sleep'?'睡眠':'起床')+'！';
   } else {
     el.className = 'report-result late';
     el.textContent = '🔵 次は全力！ファイト！';
   }
   el.style.display = 'block';
-  setTimeout(() => { el.style.display = 'none'; }, 5000);
+  setTimeout(() => { el.style.display='none'; }, 5000);
 }
 
-/* ================================================================
-   NOTIFICATION
-================================================================ */
+// ============================================================
+//  NOTIFICATION
+// ============================================================
 function loadNotifPrefs() {
-  try { const s = localStorage.getItem(NOTIF_KEY); if (s) notifPrefs = JSON.parse(s); } catch(_) {}
+  try {
+    const saved = localStorage.getItem(NOTIF_KEY);
+    if (saved) notifPrefs = JSON.parse(saved);
+  } catch(_) {}
 }
 function saveNotifPrefs() {
   try { localStorage.setItem(NOTIF_KEY, JSON.stringify(notifPrefs)); } catch(_) {}
@@ -1033,18 +914,19 @@ function renderPermissionStatus() {
     el.innerHTML = '<div class="notif-status-badge denied">⚠️ このブラウザは通知非対応</div>'; return;
   }
   const perm = Notification.permission;
-  if (perm === 'granted')
+  if (perm === 'granted') {
     el.innerHTML = '<div class="notif-status-badge granted">✓ 通知が許可されています</div>';
-  else if (perm === 'denied')
+  } else if (perm === 'denied') {
     el.innerHTML = '<div class="notif-status-badge denied">✗ 通知がブロックされています（ブラウザ設定から許可してください）</div>';
-  else
+  } else {
     el.innerHTML = '<div class="notif-status-badge default">🔔 通知をオンにすると許可を求めます</div>';
+  }
 }
 async function onNotifToggle(type, checked) {
   if (checked && 'Notification' in window && Notification.permission === 'default') {
     const result = await Notification.requestPermission();
     if (result !== 'granted') {
-      document.getElementById('notif-' + type + '-toggle').checked = false;
+      document.getElementById('notif-'+type+'-toggle').checked = false;
       showToast('通知が許可されませんでした');
       renderPermissionStatus(); return;
     }
@@ -1056,8 +938,13 @@ async function onNotifToggle(type, checked) {
 }
 function sendTestNotif() {
   if (!('Notification' in window)) { showToast('このブラウザは通知非対応です'); return; }
-  if (Notification.permission !== 'granted') { showToast('先に通知を許可してください'); return; }
-  new Notification('全力睡眠 テスト通知', { body: 'テスト：通知が正常に届いています！', icon: '🌙' });
+  if (Notification.permission !== 'granted') {
+    showToast('先に通知を許可してください'); return;
+  }
+  new Notification('全力睡眠 テスト通知', {
+    body: 'テスト：通知が正常に届いています！',
+    icon: '🌙'
+  });
 }
 function fireNotification(data) {
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
@@ -1065,8 +952,8 @@ function fireNotification(data) {
   const isSleep = data.type === 'sleep';
   if (isSleep && !notifPrefs.sleep) return;
   if (!isSleep && !notifPrefs.wake) return;
-  const name   = data.displayName || 'メンバー';
-  const icon   = isSleep ? '🌙' : '☀️';
+  const name = data.displayName || 'メンバー';
+  const icon = isSleep ? '🌙' : '☀️';
   const action = isSleep ? '就寝しました' : '起床しました';
   new Notification(`${icon} ${name}が${action}`, {
     body: `${data.localTime || ''}${data.localDate ? ' (' + data.localDate + ')' : ''}`,
@@ -1074,12 +961,14 @@ function fireNotification(data) {
   });
 }
 
-/* ================================================================
-   SORT
-================================================================ */
+// ============================================================
+//  SORT
+// ============================================================
 function loadCustomOrder() {
-  try { const s = localStorage.getItem(CUSTOM_ORDER_KEY); if (s) customOrder = JSON.parse(s); }
-  catch(_) { customOrder = []; }
+  try {
+    const saved = localStorage.getItem(CUSTOM_ORDER_KEY);
+    if (saved) customOrder = JSON.parse(saved);
+  } catch(_) { customOrder = []; }
 }
 function saveCustomOrder() {
   try { localStorage.setItem(CUSTOM_ORDER_KEY, JSON.stringify(customOrder)); } catch(_) {}
@@ -1087,30 +976,36 @@ function saveCustomOrder() {
 function setSortMode(mode) {
   sortMode = mode;
   document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('sort-' + mode).classList.add('active');
-  document.getElementById('sort-hint').textContent = mode === 'custom'
+  document.getElementById('sort-'+mode).classList.add('active');
+  const hint = document.getElementById('sort-hint');
+  hint.textContent = mode === 'custom'
     ? '⠿ カードをドラッグして並び順を変更できます'
     : '並び替えはカスタムモードでドラッグできます';
   renderStatusGrid();
 }
 
-/* ================================================================
-   TIMELINE SUBSCRIPTION
-================================================================ */
+// ============================================================
+//  TIMELINE SUBSCRIPTION
+// ============================================================
 function subscribeTimeline() {
   if (unsubTimeline) unsubTimeline();
-  document.getElementById('status-grid').innerHTML =
-    '<div class="loading" style="grid-column:1/-1">読み込み中…</div>';
+  const grid = document.getElementById('status-grid');
+  grid.innerHTML = '<div class="loading" style="grid-column:1/-1">読み込み中…</div>';
+
   let isFirst = true;
   unsubTimeline = db.collection('logs')
-    .orderBy('timestamp', 'desc').limit(50)
+    .orderBy('timestamp', 'desc')
+    .limit(50)
     .onSnapshot((snapshot) => {
       if (!isFirst) {
         snapshot.docChanges().forEach((change) => {
-          if (change.type === 'added') fireNotification(change.doc.data());
+          if (change.type === 'added') {
+            fireNotification(change.doc.data());
+          }
         });
       }
       isFirst = false;
+
       userStatusMap.clear();
       snapshot.forEach((doc) => {
         const d = doc.data();
@@ -1124,33 +1019,41 @@ function subscribeTimeline() {
           });
         }
       });
-      userStatusMap.forEach((_, uid) => { if (!customOrder.includes(uid)) customOrder.push(uid); });
+
+      userStatusMap.forEach((_, uid) => {
+        if (!customOrder.includes(uid)) customOrder.push(uid);
+      });
       customOrder = customOrder.filter(uid => userStatusMap.has(uid));
       saveCustomOrder();
+
       renderStatusGrid();
       loadAchievementRates();
     }, (err) => {
       console.error(err);
-      document.getElementById('status-grid').innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+      grid.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
     });
 }
 
-/* ================================================================
-   STATUS GRID RENDER
-================================================================ */
+// ============================================================
+//  STATUS GRID RENDER
+// ============================================================
 function getSortedEntries() {
   const entries = Array.from(userStatusMap.values());
   if (sortMode === 'custom') {
     entries.sort((a, b) => {
-      const ia = customOrder.indexOf(a.uid), ib = customOrder.indexOf(b.uid);
+      const ia = customOrder.indexOf(a.uid);
+      const ib = customOrder.indexOf(b.uid);
       return (ia === -1 ? 9999 : ia) - (ib === -1 ? 9999 : ib);
     });
   } else if (sortMode === 'status') {
-    entries.sort((a, b) => a.type === b.type ? 0 : a.type === 'sleep' ? -1 : 1);
+    entries.sort((a, b) => {
+      if (a.type === b.type) return 0;
+      return a.type === 'sleep' ? -1 : 1;
+    });
   } else if (sortMode === 'time') {
     entries.sort((a, b) => {
-      const ta = a.timestamp?.toMillis?.() ?? 0;
-      const tb = b.timestamp?.toMillis?.() ?? 0;
+      const ta = a.timestamp ? (a.timestamp.toMillis ? a.timestamp.toMillis() : 0) : 0;
+      const tb = b.timestamp ? (b.timestamp.toMillis ? b.timestamp.toMillis() : 0) : 0;
       return tb - ta;
     });
   } else if (sortMode === 'name') {
@@ -1158,6 +1061,7 @@ function getSortedEntries() {
   }
   return entries;
 }
+
 function renderStatusGrid() {
   const grid = document.getElementById('status-grid');
   grid.innerHTML = '';
@@ -1165,51 +1069,62 @@ function renderStatusGrid() {
     grid.innerHTML = '<div class="empty-timeline" style="grid-column:1/-1"><div class="big">💤</div>まだ報告がありません</div>';
     return;
   }
-  getSortedEntries().forEach(u => grid.appendChild(renderStatusCard(u)));
+  const entries = getSortedEntries();
+  entries.forEach((u) => grid.appendChild(renderStatusCard(u)));
   if (sortMode === 'custom') setupDragDrop();
 }
+
 function renderStatusCard(u) {
-  const isSleeping = u.type === 'sleep';
-  const sc = isSleeping ? 'sleeping' : 'awake';
+  const isSleeping  = u.type === 'sleep';
+  const stateClass  = isSleeping ? 'sleeping' : 'awake';
+  const badgeLabel  = isSleeping ? '睡眠中' : '起床中';
+  const typeLabel   = isSleeping ? '就寝' : '起床';  // ← 変更箇所
+  const goalIcon    = isSleeping ? '🌙' : '☀️';
+  const goalLabel   = isSleeping ? '就寝目標' : '起床目標';
+
   let displayTime = u.localTime || '';
-  if (!displayTime && u.timestamp?.toDate) {
+  if (!displayTime && u.timestamp && u.timestamp.toDate) {
     const t = u.timestamp.toDate();
     displayTime = String(t.getHours()).padStart(2,'0') + ':' + String(t.getMinutes()).padStart(2,'0');
   }
   let displayDate = u.localDate || '';
-  if (!displayDate && u.timestamp?.toDate) {
+  if (!displayDate && u.timestamp && u.timestamp.toDate) {
     const t = u.timestamp.toDate();
     displayDate = (t.getMonth()+1) + '/' + t.getDate();
   }
+
   let achievementBadge = '';
   if (u.isOnTime === true)  achievementBadge = '<span class="card-achieve-badge achieved">🔴 目標達成</span>';
   else if (u.isOnTime === false) achievementBadge = '<span class="card-achieve-badge missed">🔵 次頑張ろう</span>';
-  const goalHTML = u.goalTime ? `
-    <div class="card-goal-row">
-      <span class="card-goal-label">${isSleeping?'🌙 就寝目標':'☀️ 起床目標'}</span>
-      <span class="card-goal-value ${sc}">${escapeHtml(u.goalTime)}</span>
-    </div>` : '';
+
+  const goalHTML = u.goalTime
+    ? `<div class="card-goal-row">
+        <span class="card-goal-label">${goalIcon} ${goalLabel}</span>
+        <span class="card-goal-value ${stateClass}">${escapeHtml(u.goalTime)}</span>
+       </div>`
+    : '';
+
   const card = document.createElement('div');
-  card.className = `status-card ${sc}`;
+  card.className = `status-card ${stateClass}`;
   card.dataset.uid = u.uid;
   card.draggable = sortMode === 'custom';
   card.innerHTML = `
     <div class="card-top">
-      <span class="card-status-badge ${sc}">
-        <span class="status-dot ${sc}"></span>${isSleeping?'睡眠中':'起床中'}
+      <span class="card-status-badge ${stateClass}">
+        <span class="status-dot ${stateClass}"></span>${badgeLabel}
       </span>
       <span class="drag-handle" title="ドラッグして並び替え">⠿</span>
     </div>
     <div class="card-identity">
-      <div class="card-avatar ${sc}">${escapeHtml(u.displayName.charAt(0))}</div>
+      <div class="card-avatar ${stateClass}">${escapeHtml(u.displayName.charAt(0))}</div>
       <span class="card-name">${escapeHtml(u.displayName)}</span>
     </div>
     <div class="card-time-block">
       <div class="card-time-main">
-        <span class="card-time-type-label ${sc}">${isSleeping?'就寝':'起床'}</span>
-        <span class="card-time-value ${sc}">${escapeHtml(displayTime)}</span>
+        <span class="card-time-type-label ${stateClass}">${typeLabel}</span>
+        <span class="card-time-value ${stateClass}">${escapeHtml(displayTime)}</span>
       </div>
-      ${displayDate ? `<span class="card-date-chip ${sc}">${escapeHtml(displayDate)}</span>` : ''}
+      ${displayDate ? `<span class="card-date-chip ${stateClass}">${escapeHtml(displayDate)}</span>` : ''}
     </div>
     ${goalHTML}
     ${achievementBadge}
@@ -1217,12 +1132,15 @@ function renderStatusCard(u) {
   return card;
 }
 
-/* ================================================================
-   DRAG & DROP
-================================================================ */
+// ============================================================
+//  DRAG & DROP（カスタム並び替え）
+// ============================================================
 let dragSrcEl = null;
+
 function setupDragDrop() {
-  document.querySelectorAll('.status-card').forEach(card => {
+  const grid = document.getElementById('status-grid');
+  const cards = grid.querySelectorAll('.status-card');
+  cards.forEach(card => {
     card.addEventListener('dragstart', onDragStart);
     card.addEventListener('dragover',  onDragOver);
     card.addEventListener('drop',      onDrop);
@@ -1231,7 +1149,8 @@ function setupDragDrop() {
   });
 }
 function onDragStart(e) {
-  dragSrcEl = this; this.classList.add('dragging');
+  dragSrcEl = this;
+  this.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', this.dataset.uid);
 }
@@ -1244,35 +1163,42 @@ function onDragLeave() { this.classList.remove('drag-over'); }
 function onDrop(e) {
   e.preventDefault();
   if (this === dragSrcEl) return;
-  const srcUid = e.dataTransfer.getData('text/plain'), dstUid = this.dataset.uid;
-  const si = customOrder.indexOf(srcUid), di = customOrder.indexOf(dstUid);
-  if (si === -1 || di === -1) return;
-  customOrder.splice(si, 1); customOrder.splice(di, 0, srcUid);
-  saveCustomOrder(); renderStatusGrid();
+  const srcUid = e.dataTransfer.getData('text/plain');
+  const dstUid = this.dataset.uid;
+  const srcIdx = customOrder.indexOf(srcUid);
+  const dstIdx = customOrder.indexOf(dstUid);
+  if (srcIdx === -1 || dstIdx === -1) return;
+  customOrder.splice(srcIdx, 1);
+  customOrder.splice(dstIdx, 0, srcUid);
+  saveCustomOrder();
+  renderStatusGrid();
 }
 function onDragEnd() {
-  document.querySelectorAll('.status-card').forEach(c => c.classList.remove('dragging','drag-over'));
+  document.querySelectorAll('.status-card').forEach(c => {
+    c.classList.remove('dragging', 'drag-over');
+  });
 }
 
-/* ================================================================
-   ACHIEVEMENT RATES
-================================================================ */
+// ============================================================
+//  ACHIEVEMENT RATES
+// ============================================================
 async function loadAchievementRates() {
   const listEl = document.getElementById('achievement-list');
   listEl.innerHTML = '<div class="loading">集計中…</div>';
   try {
-    const since = new Date(); since.setDate(since.getDate()-7); since.setHours(0,0,0,0);
+    const since = new Date();
+    since.setDate(since.getDate() - 7); since.setHours(0,0,0,0);
     const snapshot = await db.collection('logs')
-      .where('timestamp', '>=', firebase.firestore.Timestamp.fromDate(since))
-      .orderBy('timestamp', 'desc').get();
+      .where('timestamp','>=', firebase.firestore.Timestamp.fromDate(since))
+      .orderBy('timestamp','desc').get();
     const map = new Map();
     snapshot.forEach((doc) => {
       const d = doc.data();
-      if (!d.uid || d.isOnTime === null || d.isOnTime === undefined) return;
+      if (!d.uid || d.isOnTime===null || d.isOnTime===undefined) return;
       if (!map.has(d.uid)) map.set(d.uid, { displayName: d.displayName||'ユーザー', sleep:{total:0,achieved:0}, wake:{total:0,achieved:0} });
       const u = map.get(d.uid);
-      if (d.type === 'sleep') { u.sleep.total++; if(d.isOnTime) u.sleep.achieved++; }
-      else                    { u.wake.total++;  if(d.isOnTime) u.wake.achieved++; }
+      if (d.type==='sleep') { u.sleep.total++; if (d.isOnTime) u.sleep.achieved++; }
+      else { u.wake.total++; if (d.isOnTime) u.wake.achieved++; }
     });
     renderAchievementList(map);
   } catch(e) { listEl.innerHTML = '<div class="achieve-empty">データの取得に失敗しました</div>'; }
@@ -1287,44 +1213,46 @@ function renderAchievementList(map) {
     return { uid, ...u, total, achieved };
   });
   entries.sort((a, b) => {
-    const ra = a.total ? a.achieved/a.total : 0, rb = b.total ? b.achieved/b.total : 0;
+    const ra = a.total ? a.achieved/a.total : 0;
+    const rb = b.total ? b.achieved/b.total : 0;
     return rb - ra;
   });
   entries.forEach((u) => {
-    const sp = u.sleep.total ? Math.round(u.sleep.achieved/u.sleep.total*100) : null;
-    const wp = u.wake.total  ? Math.round(u.wake.achieved/u.wake.total*100)   : null;
-    const op = u.total       ? Math.round(u.achieved/u.total*100)             : null;
-    let oc = '#8fa8c8';
-    if (op !== null) { if(op>=80) oc='#43e97b'; else if(op>=50) oc='#f5c842'; else oc='#4facfe'; }
+    const sleepPct = u.sleep.total ? Math.round(u.sleep.achieved/u.sleep.total*100) : null;
+    const wakePct  = u.wake.total  ? Math.round(u.wake.achieved/u.wake.total*100)   : null;
+    const overallPct = u.total ? Math.round(u.achieved/u.total*100) : null;
+    let overallColor = '#8fa8c8';
+    if (overallPct!==null) { if(overallPct>=80) overallColor='#43e97b'; else if(overallPct>=50) overallColor='#f5c842'; else overallColor='#4facfe'; }
     const card = document.createElement('div');
     card.className = 'achieve-card';
     card.innerHTML = `
       <div class="achieve-card-top">
         <div class="achieve-avatar">${escapeHtml(u.displayName.charAt(0))}</div>
         <span class="achieve-name">${escapeHtml(u.displayName)}</span>
-        <span class="achieve-overall" style="color:${oc}">${op!==null?op+'%':'－'}</span>
+        <span class="achieve-overall" style="color:${overallColor}">${overallPct!==null?overallPct+'%':'－'}</span>
       </div>
       <div class="achieve-bars">
         <div class="achieve-bar-row">
           <span class="achieve-bar-label">🌙 就寝</span>
-          <div class="achieve-bar-track"><div class="achieve-bar-fill sleep" style="width:${sp??0}%"></div></div>
-          <span class="achieve-bar-pct sleep">${sp!==null?sp+'%':'－'}</span>
+          <div class="achieve-bar-track"><div class="achieve-bar-fill sleep" style="width:${sleepPct??0}%"></div></div>
+          <span class="achieve-bar-pct sleep">${sleepPct!==null?sleepPct+'%':'－'}</span>
           <span class="achieve-bar-count">${u.sleep.achieved}/${u.sleep.total}日</span>
         </div>
         <div class="achieve-bar-row">
           <span class="achieve-bar-label">☀️ 起床</span>
-          <div class="achieve-bar-track"><div class="achieve-bar-fill wake" style="width:${wp??0}%"></div></div>
-          <span class="achieve-bar-pct wake">${wp!==null?wp+'%':'－'}</span>
+          <div class="achieve-bar-track"><div class="achieve-bar-fill wake" style="width:${wakePct??0}%"></div></div>
+          <span class="achieve-bar-pct wake">${wakePct!==null?wakePct+'%':'－'}</span>
           <span class="achieve-bar-count">${u.wake.achieved}/${u.wake.total}日</span>
         </div>
-      </div>`;
+      </div>
+    `;
     listEl.appendChild(card);
   });
 }
 
-/* ================================================================
-   SETTINGS
-================================================================ */
+// ============================================================
+//  SETTINGS
+// ============================================================
 function updateGoalDisplay() {
   document.getElementById('goal-sleep-display').textContent = userProfile.goalSleep || '未設定';
   document.getElementById('goal-wake-display').textContent  = userProfile.goalWake  || '未設定';
@@ -1338,505 +1266,34 @@ async function saveSettings() {
   await db.collection('users').doc(currentUser.uid).set({ displayName: name, goalSleep, goalWake }, { merge: true });
   userProfile = { ...userProfile, displayName: name, goalSleep, goalWake };
   document.getElementById('user-name-display').textContent = name;
-  document.getElementById('user-avatar').textContent        = name.charAt(0);
+  document.getElementById('user-avatar').textContent = name.charAt(0);
   updateGoalDisplay();
-  updateAlarmGoalText();
   const msg = document.getElementById('save-msg');
   msg.style.display = 'inline';
-  setTimeout(() => { msg.style.display = 'none'; }, 2500);
+  setTimeout(() => { msg.style.display='none'; }, 2500);
 }
 
-/* ================================================================
-   TAB NAV
-================================================================ */
+// ============================================================
+//  TAB NAV
+// ============================================================
 function switchTab(name, btnEl) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('tab-'+name).classList.add('active');
   if (btnEl) btnEl.classList.add('active');
 }
 
-/* ================================================================
-   TOAST & UTILS
-================================================================ */
+// ============================================================
+//  TOAST & UTILS
+// ============================================================
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  setTimeout(() => t.classList.remove('show'), 2500);
 }
 function escapeHtml(s) {
-  return String(s)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
-/* ================================================================
-   ALARM  —  完全版（Service Worker バックグラウンド連動）
-================================================================ */
-
-/* ----  状態管理  ---- */
-let alarmState    = 'off';    // 'off' | 'set' | 'snooze' | 'ringing'
-let alarmSource   = 'goal';   // 'goal' | 'custom'
-let alarmTargetMs = null;     // 発火予定 Unix ms
-let alarmTimerId  = null;     // setInterval ID（ページ内カウントダウン用）
-
-/* ----  Web Audio  ---- */
-let audioCtx          = null;
-let alarmBeepInterval = null;
-
-function getAudioCtx() {
-  if (!audioCtx) {
-    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-    catch(e) { console.warn('[Alarm] AudioContext 初期化失敗:', e); }
-  }
-  return audioCtx;
-}
-function startAlarmSound() {
-  stopAlarmSound();
-  playBeepPattern();
-  alarmBeepInterval = setInterval(playBeepPattern, 2000);
-}
-function playBeepPattern() {
-  const ctx = getAudioCtx();
-  if (!ctx) return;
-  // 3連ビープ（880Hz / 1760Hz 交互）
-  [0, 0.25, 0.5].forEach((offset, i) => {
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.type = 'sine';
-    osc.frequency.value = i % 2 === 0 ? 880 : 1100;
-    const t = ctx.currentTime + offset;
-    gain.gain.setValueAtTime(0, t);
-    gain.gain.linearRampToValueAtTime(0.6, t + 0.02);
-    gain.gain.linearRampToValueAtTime(0, t + 0.18);
-    osc.start(t);
-    osc.stop(t + 0.2);
-  });
-}
-function stopAlarmSound() {
-  if (alarmBeepInterval) { clearInterval(alarmBeepInterval); alarmBeepInterval = null; }
-}
-
-/* ----  ソース切り替え  ---- */
-function setAlarmSource(src) {
-  alarmSource = src;
-  document.getElementById('alarm-src-goal').classList.toggle('active', src === 'goal');
-  document.getElementById('alarm-src-custom').classList.toggle('active', src === 'custom');
-  document.getElementById('alarm-goal-display').style.display   = src === 'goal'   ? 'flex' : 'none';
-  document.getElementById('alarm-custom-display').style.display = src === 'custom' ? 'flex' : 'none';
-  updateAlarmGoalText();
-}
-function updateAlarmGoalText() {
-  const t  = userProfile?.goalWake || '未設定';
-  const el = document.getElementById('alarm-goal-time-text');
-  if (!el) return;
-  el.textContent = t;
-  el.className   = 'alarm-time-display' + (t === '未設定' ? ' inactive' : '');
-}
-
-/* ----  目標時刻の解決  ---- */
-function resolveAlarmTimeStr() {
-  if (alarmSource === 'goal') {
-    const t = userProfile?.goalWake;
-    if (!t) { showToast('先に設定タブで目標起床時刻を設定してください'); return null; }
-    return t;
-  } else {
-    const t = document.getElementById('alarm-custom-input').value;
-    if (!t) { showToast('時刻を入力してください'); return null; }
-    return t;
-  }
-}
-function calcNextTargetMs(timeStr) {
-  const [h, m] = timeStr.split(':').map(Number);
-  const now    = new Date();
-  const target = new Date(now);
-  target.setHours(h, m, 0, 0);
-  if (target <= now) target.setDate(target.getDate() + 1); // 翌日
-  return target.getTime();
-}
-
-/* ----  アラームをセット  ---- */
-function setAlarm() {
-  // AudioContext をユーザー操作で resume
-  try { getAudioCtx()?.resume(); } catch(_) {}
-
-  const timeStr = resolveAlarmTimeStr();
-  if (!timeStr) return;
-
-  alarmTargetMs = calcNextTargetMs(timeStr);
-  alarmState    = 'set';
-  updateAlarmUI();
-  startAlarmCountdown();
-  // SW にも登録
-  swSetAlarm(alarmTargetMs);
-  showToast(`⏰ アラームをセットしました（${timeStr}）`);
-}
-
-/* ----  アラーム解除  ---- */
-function cancelAlarm() {
-  const wasSnooze = (alarmState === 'snooze');
-  alarmState    = 'off';
-  alarmTargetMs = null;
-  stopAlarmCountdown();
-  stopAlarmSound();
-  updateAlarmUI();
-  swCancelAlarm();
-  showToast(wasSnooze ? 'スヌーズを解除しました' : 'アラームを解除しました');
-}
-
-/* ----  アラーム停止（起床ボタン）  ---- */
-function stopAlarm() {
-  alarmState    = 'off';
-  alarmTargetMs = null;
-  stopAlarmCountdown();
-  stopAlarmSound();
-  updateAlarmUI();
-  swCancelAlarm();
-  showToast('✅ おはようございます！');
-}
-
-/* ----  スヌーズ（5分後）  ---- */
-function snoozeAlarm(minutes = 5) {
-  const snoozeMs = Date.now() + minutes * 60 * 1000;
-  alarmTargetMs  = snoozeMs;
-  alarmState     = 'snooze';
-  stopAlarmSound();
-  stopAlarmCountdown();
-  updateAlarmUI();
-  startAlarmCountdown();
-  swSetAlarm(snoozeMs);
-  showToast(`💤 ${minutes}分後に再アラームします`);
-}
-
-/* ----  カウントダウン  ---- */
-function startAlarmCountdown() {
-  stopAlarmCountdown();
-  alarmTimerId = setInterval(tickAlarm, 1000);
-  tickAlarm(); // 即時1回
-}
-function stopAlarmCountdown() {
-  if (alarmTimerId !== null) { clearInterval(alarmTimerId); alarmTimerId = null; }
-}
-function tickAlarm() {
-  if (!alarmTargetMs) return;
-  const diff = alarmTargetMs - Date.now();
-  if (diff <= 0) {
-    // ページ内でも発火（SWが届かなかった場合のフォールバック）
-    if (alarmState !== 'ringing') {
-      alarmState = 'ringing';
-      stopAlarmCountdown();
-      updateAlarmUI();
-      startAlarmSound();
-    }
-    return;
-  }
-  const totalSec = Math.floor(diff / 1000);
-  const hh = Math.floor(totalSec / 3600);
-  const mm = Math.floor((totalSec % 3600) / 60);
-  const ss = totalSec % 60;
-  const txt = hh > 0
-    ? `${hh}時間${String(mm).padStart(2,'0')}分${String(ss).padStart(2,'0')}秒`
-    : `${mm}分${String(ss).padStart(2,'0')}秒`;
-  const cdEl = document.getElementById('alarm-countdown-text');
-  if (cdEl) cdEl.textContent = txt;
-}
-
-/* ----  UI 同期  ---- */
-function updateAlarmUI() {
-  const card     = document.getElementById('alarm-card');
-  const badge    = document.getElementById('alarm-status-badge');
-  const normal   = document.getElementById('alarm-actions-normal');
-  const setEl    = document.getElementById('alarm-actions-set');
-  const ringing  = document.getElementById('alarm-actions-ringing');
-  const countdown = document.getElementById('alarm-countdown');
-  const snoozeBanner = document.getElementById('snooze-banner');
-
-  // リセット
-  card.className = 'alarm-card';
-  badge.className = 'alarm-status-badge';
-  snoozeBanner.classList.remove('show');
-
-  if (alarmState === 'off') {
-    badge.textContent = 'オフ'; badge.classList.add('off');
-    normal.style.display   = 'flex';
-    setEl.style.display    = 'none';
-    ringing.style.display  = 'none';
-    countdown.style.display = 'none';
-
-  } else if (alarmState === 'set') {
-    const timeStr = alarmSource === 'goal'
-      ? (userProfile?.goalWake || '--:--')
-      : document.getElementById('alarm-custom-input').value;
-    badge.textContent = `${timeStr} にセット中`; badge.classList.add('set');
-    card.classList.add('alarm-active');
-    normal.style.display   = 'none';
-    setEl.style.display    = 'flex';
-    ringing.style.display  = 'none';
-    countdown.style.display = 'block';
-
-  } else if (alarmState === 'snooze') {
-    // スヌーズ中
-    const snoozeTimeStr = alarmTargetMs
-      ? new Date(alarmTargetMs).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })
-      : '--:--';
-    badge.textContent = `💤 スヌーズ中`; badge.classList.add('set');
-    card.classList.add('alarm-active');
-    normal.style.display   = 'none';
-    setEl.style.display    = 'flex';
-    ringing.style.display  = 'none';
-    countdown.style.display = 'block';
-    // スヌーズバナー
-    const snoozeEl = document.getElementById('snooze-time-text');
-    if (snoozeEl) snoozeEl.textContent = snoozeTimeStr;
-    snoozeBanner.classList.add('show');
-
-  } else if (alarmState === 'ringing') {
-    badge.textContent = '🔔 鳴動中！'; badge.classList.add('ringing');
-    card.classList.add('alarm-ringing');
-    normal.style.display   = 'none';
-    setEl.style.display    = 'none';
-    ringing.style.display  = 'flex';
-    countdown.style.display = 'none';
-    snoozeBanner.classList.remove('show');
-  }
-}
-
-/* ----  就寝報告連動 → 自動セット  ---- */
-function alarmOnSleep() {
-  if (alarmState !== 'off') return; // すでにセット済みならスキップ
-  try { getAudioCtx()?.resume(); } catch(_) {}
-  const timeStr = resolveAlarmTimeStr();
-  if (!timeStr) return;
-  alarmTargetMs = calcNextTargetMs(timeStr);
-  alarmState    = 'set';
-  updateAlarmUI();
-  startAlarmCountdown();
-  swSetAlarm(alarmTargetMs);
-  showToast(`⏰ アラームを自動セットしました（${timeStr}）`);
-}
-
-/* ----  起床報告連動 → 自動解除  ---- */
-function alarmOnWake() {
-  if (alarmState === 'ringing') stopAlarm();
-  else if (alarmState === 'set' || alarmState === 'snooze') {
-    cancelAlarm();
-    showToast('起床報告に合わせてアラームを解除しました');
-  }
-}
-
-/* ================================================================
-   SERVICE WORKER 管理
-   - 登録・メッセージ授受・アラーム状態の永続化
-================================================================ */
-
-let swRegistration = null;
-let swReady        = false;   // controller が使えるか
-
-/* ----  SW 登録  ---- */
-async function registerServiceWorker() {
-  if (!('serviceWorker' in navigator)) {
-    updateSwStatusBadge('ng', 'SW非対応ブラウザ');
-    return;
-  }
-  try {
-    swRegistration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
-    console.log('[SW] 登録完了:', swRegistration.scope);
-
-    // メッセージ受信リスナー
-    navigator.serviceWorker.addEventListener('message', onSwMessage);
-
-    // controller が使えるようになったら状態問い合わせ
-    await waitForController();
-    swReady = true;
-    updateSwStatusBadge('ok', 'バックグラウンド保護 有効');
-    swQueryAlarmStatus();
-
-    // SW アップデート検知
-    swRegistration.addEventListener('updatefound', () => {
-      console.log('[SW] 新バージョン検出 — バックグラウンドで更新中');
-    });
-  } catch (e) {
-    console.warn('[SW] 登録失敗:', e);
-    updateSwStatusBadge('ng', 'SW登録失敗（HTTPS必要）');
-  }
-}
-
-/* controller が ready になるまで待つ（最大5秒） */
-function waitForController() {
-  return new Promise((resolve) => {
-    if (navigator.serviceWorker.controller) { resolve(); return; }
-    const handler = () => {
-      if (navigator.serviceWorker.controller) {
-        navigator.serviceWorker.removeEventListener('controllerchange', handler);
-        resolve();
-      }
-    };
-    navigator.serviceWorker.addEventListener('controllerchange', handler);
-    setTimeout(resolve, 5000); // タイムアウト
-  });
-}
-
-/* ----  SW からのメッセージ処理  ---- */
-function onSwMessage(event) {
-  const { type, payload } = event.data || {};
-  console.log('[SW→Page] message:', type, payload);
-
-  switch (type) {
-    /* アラーム発火（バックグラウンドから復帰時など） */
-    case 'ALARM_FIRE':
-      alarmState    = 'ringing';
-      alarmTargetMs = null;
-      stopAlarmCountdown();
-      stopAlarmSound();
-      updateAlarmUI();
-      // ページが前面にある場合だけ音を鳴らす（SW側の通知バナーで代替）
-      if (document.visibilityState === 'visible') {
-        try { getAudioCtx()?.resume().then(() => startAlarmSound()); } catch(_) {}
-      }
-      showToast('⏰ 起床時刻です！');
-      break;
-
-    /* 通知バナー「止める」→ ページ側も停止 */
-    case 'ALARM_STOP_FROM_NOTIF':
-      stopAlarm();
-      break;
-
-    /* 通知バナー「5分後」→ スヌーズ */
-    case 'ALARM_SNOOZE':
-      alarmTargetMs = payload?.targetMs ?? (Date.now() + 5 * 60 * 1000);
-      alarmState    = 'snooze';
-      stopAlarmSound();
-      stopAlarmCountdown();
-      updateAlarmUI();
-      startAlarmCountdown();
-      showToast('💤 5分後に再アラームします');
-      break;
-
-    /* ページ再起動後の状態復元 */
-    case 'ALARM_STATUS':
-      if (event.data.active && event.data.targetMs && event.data.targetMs > Date.now()) {
-        alarmTargetMs = event.data.targetMs;
-        alarmState    = 'set';
-        updateAlarmUI();
-        startAlarmCountdown();
-        console.log('[SW] アラーム状態を復元:', new Date(alarmTargetMs).toLocaleTimeString('ja-JP'));
-      }
-      break;
-
-    /* ACK 確認 */
-    case 'ALARM_SET_ACK':
-      console.log('[SW] ALARM_SET_ACK — SW側にセット確認済み', new Date(payload.targetMs).toLocaleString('ja-JP'));
-      break;
-
-    case 'PONG':
-      console.log('[SW] PONG — version:', event.data.swVersion);
-      break;
-  }
-}
-
-/* ----  SW へのメッセージ送信（安全版）  ---- */
-function swPostMessage(msg) {
-  const ctrl = navigator.serviceWorker?.controller;
-  if (!ctrl) {
-    console.warn('[SW] controller なし — メッセージ送信スキップ:', msg.type);
-    return false;
-  }
-  ctrl.postMessage(msg);
-  return true;
-}
-
-/* SW にアラームをセット */
-function swSetAlarm(targetMs) {
-  const ok = swPostMessage({ type: 'ALARM_SET', payload: { targetMs } });
-  if (!ok) {
-    updateSwStatusBadge('warn', 'ページ内のみ（SW未接続）');
-    // SWなしでもページ内 setInterval で発火するのでフォールバック済み
-  }
-}
-
-/* SW のアラームを解除 */
-function swCancelAlarm() {
-  swPostMessage({ type: 'ALARM_CANCEL' });
-}
-
-/* SW の状態を問い合わせ（ページ再読み込み後の復元用） */
-function swQueryAlarmStatus() {
-  swPostMessage({ type: 'ALARM_QUERY' });
-}
-
-/* ----  SW ステータスバッジ更新  ---- */
-function updateSwStatusBadge(level, text) {
-  // アラームカード内
-  const el1 = document.getElementById('alarm-sw-status');
-  if (el1) {
-    el1.textContent = text;
-    el1.className   = `alarm-sw-val ${level}`;
-  }
-  // 設定タブ内
-  const el2 = document.getElementById('sw-global-status');
-  if (!el2) return;
-  const iconMap = { ok: '✅', warn: '⚠️', ng: '❌' };
-  el2.innerHTML = `
-    <span class="sw-status-badge ${level === 'ok' ? 'active' : level === 'warn' ? 'pending' : 'inactive'}">
-      <span class="sw-dot"></span>${iconMap[level] || ''} ${text}
-    </span>
-  `;
-}
-
-/* ----  通知許可を要求  ---- */
-async function requestNotificationPermission() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    const result = await Notification.requestPermission();
-    if (result === 'granted') renderPermissionStatus();
-  }
-}
-
-/* ================================================================
-   ページイベント
-================================================================ */
-
-/* ページ読み込み時 */
-window.addEventListener('load', () => {
-  registerServiceWorker();
-  requestNotificationPermission();
-  updateSwStatusBadge('pending', 'SW確認中…');
-});
-
-/* 画面復帰時（スリープ解除、タブ切り替え戻り）*/
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') {
-    // SWにアラーム状態を問い合わせ
-    if (swReady) swQueryAlarmStatus();
-
-    // ページ内タイマーが止まっていたらカウントダウン再開
-    if (alarmState === 'set' || alarmState === 'snooze') {
-      if (!alarmTimerId) {
-        // アラーム時刻が過ぎていたら発火
-        if (alarmTargetMs && alarmTargetMs <= Date.now()) {
-          alarmState = 'ringing';
-          updateAlarmUI();
-          try { getAudioCtx()?.resume().then(() => startAlarmSound()); } catch(_) {}
-        } else {
-          startAlarmCountdown();
-        }
-      }
-    }
-  }
-});
-
-/* ページフォーカス復帰 */
-window.addEventListener('focus', () => {
-  if (swReady) swQueryAlarmStatus();
-});
-
-/* オフラインでも動くよう beforeunload でSWに状態を確認 */
-window.addEventListener('beforeunload', () => {
-  if (alarmState === 'off') swCancelAlarm(); // 誤解を避けるためoff時は必ず解除
-});
-
 </script>
 </body>
 </html>
