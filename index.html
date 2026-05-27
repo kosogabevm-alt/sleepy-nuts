@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全力睡眠 — チーム睡眠管理</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="全力睡眠">
+<meta name="theme-color" content="#0a0e1a">
+<link rel="apple-touch-icon" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -416,6 +429,84 @@
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 480px) { .report-btn { width: 170px; height: 170px; } .current-time { font-size: 3rem; } }
+
+  /* ===== ALARM ===== */
+  .alarm-card {
+    background: var(--night-2); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+  }
+  .alarm-card.alarm-active {
+    border-color: rgba(245,168,35,0.5);
+    box-shadow: 0 0 20px rgba(245,168,35,0.15);
+    animation: alarmGlow 2s ease-in-out infinite;
+  }
+  .alarm-card.alarm-ringing {
+    border-color: rgba(255,77,109,0.7);
+    box-shadow: 0 0 30px rgba(255,77,109,0.3);
+    animation: alarmRingGlow 0.5s ease-in-out infinite;
+  }
+  @keyframes alarmGlow {
+    0%, 100% { box-shadow: 0 0 20px rgba(245,168,35,0.15); }
+    50% { box-shadow: 0 0 35px rgba(245,168,35,0.3); }
+  }
+  @keyframes alarmRingGlow {
+    0%, 100% { box-shadow: 0 0 30px rgba(255,77,109,0.3); }
+    50% { box-shadow: 0 0 55px rgba(255,77,109,0.6); }
+  }
+  .alarm-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;
+  }
+  .alarm-title { font-size: 0.8rem; color: var(--text-2); letter-spacing: 0.1em; text-transform: uppercase; }
+  .alarm-status-badge {
+    font-size: 0.72rem; font-weight: 700; padding: 0.22rem 0.65rem; border-radius: 20px;
+  }
+  .alarm-status-badge.off { background: rgba(255,255,255,0.05); color: var(--text-2); border: 1px solid var(--border); }
+  .alarm-status-badge.set { background: rgba(245,168,35,0.15); color: var(--sun); border: 1px solid rgba(245,168,35,0.4); }
+  .alarm-status-badge.ringing { background: rgba(255,77,109,0.2); color: var(--red); border: 1px solid rgba(255,77,109,0.5); animation: pulse 0.5s infinite; }
+  .alarm-time-row {
+    display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;
+  }
+  .alarm-time-display {
+    font-family: 'Bebas Neue', sans-serif; font-size: 2.8rem; letter-spacing: 0.05em; line-height: 1;
+    color: var(--sun); flex: 1;
+  }
+  .alarm-time-display.inactive { color: var(--text-2); }
+  .alarm-time-input-wrap { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; }
+  .alarm-source-tabs {
+    display: flex; background: var(--night-3); border-radius: 8px; padding: 3px; margin-bottom: 0.75rem;
+  }
+  .alarm-source-tab {
+    flex: 1; padding: 0.4rem 0.5rem; border: none; background: transparent;
+    color: var(--text-2); font-family: inherit; font-size: 0.78rem;
+    border-radius: 6px; cursor: pointer; transition: all 0.2s; text-align: center;
+  }
+  .alarm-source-tab.active { background: var(--night-4); color: var(--moon); font-weight: 700; }
+  .alarm-custom-input-row { display: flex; align-items: center; gap: 0.5rem; }
+  .alarm-custom-label { font-size: 0.78rem; color: var(--text-2); white-space: nowrap; }
+  .alarm-actions { display: flex; gap: 0.65rem; }
+  .btn-alarm-set {
+    flex: 1; padding: 0.7rem; background: linear-gradient(135deg, #1a4a8a, #2a6abf);
+    border: none; border-radius: var(--radius-sm); color: white;
+    font-family: inherit; font-size: 0.9rem; font-weight: 700; cursor: pointer; transition: opacity 0.2s;
+  }
+  .btn-alarm-set:hover { opacity: 0.85; }
+  .btn-alarm-cancel {
+    padding: 0.7rem 1rem; background: transparent;
+    border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-2);
+    font-family: inherit; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-alarm-cancel:hover { border-color: var(--text-2); color: var(--text); }
+  .btn-alarm-stop {
+    flex: 1; padding: 0.85rem;
+    background: linear-gradient(135deg, #8a1a1a, #bf2a2a);
+    border: none; border-radius: var(--radius-sm); color: white;
+    font-family: inherit; font-size: 1rem; font-weight: 900; cursor: pointer;
+    transition: transform 0.1s; animation: pulse 0.6s infinite;
+    letter-spacing: 0.05em;
+  }
+  .btn-alarm-stop:active { transform: scale(0.96); }
+  .alarm-countdown { font-size: 0.8rem; color: var(--text-2); margin-top: 0.6rem; text-align: center; }
+  .alarm-countdown span { color: var(--sun); font-weight: 700; }
 </style>
 </head>
 <body>
@@ -497,6 +588,55 @@
         </button>
       </div>
       <div class="report-result" id="report-result"></div>
+
+      <!-- アラームカード -->
+      <div class="alarm-card" id="alarm-card">
+        <div class="alarm-header">
+          <span class="alarm-title">⏰ アラーム</span>
+          <span class="alarm-status-badge off" id="alarm-status-badge">オフ</span>
+        </div>
+
+        <!-- ソース切り替え -->
+        <div class="alarm-source-tabs">
+          <button class="alarm-source-tab active" id="alarm-src-goal" onclick="setAlarmSource('goal')">🌅 目標起床時刻を使う</button>
+          <button class="alarm-source-tab" id="alarm-src-custom" onclick="setAlarmSource('custom')">✏️ 時刻を指定</button>
+        </div>
+
+        <!-- 目標時刻表示 / カスタム入力 -->
+        <div id="alarm-goal-display" class="alarm-time-row">
+          <div class="alarm-time-display inactive" id="alarm-goal-time-text">--:--</div>
+          <div style="font-size:0.78rem;color:var(--text-2);line-height:1.5">設定タブの<br>目標起床時刻を使用</div>
+        </div>
+        <div id="alarm-custom-display" style="display:none" class="alarm-time-row">
+          <div class="alarm-custom-input-row" style="width:100%">
+            <span class="alarm-custom-label">起床時刻：</span>
+            <input class="time-input" type="time" id="alarm-custom-input" value="06:00" style="flex:1">
+          </div>
+        </div>
+
+        <!-- 操作ボタン（通常時） -->
+        <div class="alarm-actions" id="alarm-actions-normal">
+          <button class="btn-alarm-set" id="btn-alarm-set" onclick="setAlarm()">🔔 アラームをセット</button>
+        </div>
+
+        <!-- 操作ボタン（セット済み） -->
+        <div class="alarm-actions" id="alarm-actions-set" style="display:none">
+          <button class="btn-alarm-set" style="background:linear-gradient(135deg,#1a3a1a,#2a6a2a)" onclick="setAlarm()">🔁 更新</button>
+          <button class="btn-alarm-cancel" onclick="cancelAlarm()">✕ 解除</button>
+        </div>
+
+        <!-- 操作ボタン（鳴動中） -->
+        <div class="alarm-actions" id="alarm-actions-ringing" style="display:none">
+          <button class="btn-alarm-stop" onclick="stopAlarm()">🛑 アラームを止める</button>
+        </div>
+
+        <div class="alarm-countdown" id="alarm-countdown" style="display:none">
+          アラームまで <span id="alarm-countdown-text">--</span>
+        </div>
+        <div style="font-size:0.7rem;color:var(--text-2);margin-top:0.6rem;text-align:center">
+          ※ このページを開いたままにしてください
+        </div>
+      </div>
     </div>
 
     <!-- メンバータブ -->
@@ -1230,6 +1370,333 @@ function showToast(msg) {
 function escapeHtml(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+
+// ============================================================
+//  ALARM
+// ============================================================
+let alarmState   = 'off';   // 'off' | 'set' | 'ringing'
+let alarmSource  = 'goal';  // 'goal' | 'custom'
+let alarmTimerId = null;    // setInterval ID for countdown
+let alarmTargetMs = null;   // Unix ms when alarm fires
+
+// Web Audio
+let audioCtx = null;
+let alarmNodes = [];  // 鳴動中の OscillatorNode / GainNode
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+// ビープパターンを繰り返し鳴らす
+let alarmBeepInterval = null;
+function startAlarmSound() {
+  stopAlarmSound();
+  playBeepPattern();
+  alarmBeepInterval = setInterval(playBeepPattern, 2000);
+}
+function playBeepPattern() {
+  const ctx = getAudioCtx();
+  // 3連ビープ
+  [0, 0.25, 0.5].forEach((offset, i) => {
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = 880;
+    const t = ctx.currentTime + offset;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.6, t + 0.02);
+    gain.gain.linearRampToValueAtTime(0, t + 0.18);
+    osc.start(t);
+    osc.stop(t + 0.2);
+  });
+}
+function stopAlarmSound() {
+  if (alarmBeepInterval) { clearInterval(alarmBeepInterval); alarmBeepInterval = null; }
+}
+
+// アラームソース切り替え
+function setAlarmSource(src) {
+  alarmSource = src;
+  document.getElementById('alarm-src-goal').classList.toggle('active', src === 'goal');
+  document.getElementById('alarm-src-custom').classList.toggle('active', src === 'custom');
+  document.getElementById('alarm-goal-display').style.display  = src === 'goal'   ? 'flex' : 'none';
+  document.getElementById('alarm-custom-display').style.display = src === 'custom' ? 'flex' : 'none';
+  updateAlarmGoalText();
+}
+
+function updateAlarmGoalText() {
+  const t = userProfile?.goalWake || '未設定';
+  const el = document.getElementById('alarm-goal-time-text');
+  if (el) {
+    el.textContent = t;
+    el.className = 'alarm-time-display' + (t === '未設定' ? ' inactive' : '');
+  }
+}
+
+// アラームをセット
+function setAlarm() {
+  // AudioContext はユーザー操作で resume する必要がある
+  getAudioCtx().resume();
+
+  let timeStr;
+  if (alarmSource === 'goal') {
+    timeStr = userProfile?.goalWake;
+    if (!timeStr) { showToast('先に設定タブで目標起床時刻を設定してください'); return; }
+  } else {
+    timeStr = document.getElementById('alarm-custom-input').value;
+    if (!timeStr) { showToast('時刻を入力してください'); return; }
+  }
+
+  // 次に来るその時刻を計算（今日か明日か）
+  const [h, m] = timeStr.split(':').map(Number);
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1); // 過去なら翌日
+
+  alarmTargetMs = target.getTime();
+  alarmState = 'set';
+  updateAlarmUI();
+  startAlarmCountdown();
+  showToast(`⏰ アラームをセットしました（${timeStr}）`);
+}
+
+// アラーム解除
+function cancelAlarm() {
+  alarmState = 'off';
+  alarmTargetMs = null;
+  stopAlarmCountdown();
+  stopAlarmSound();
+  updateAlarmUI();
+  showToast('アラームを解除しました');
+}
+
+// アラーム停止（起床ボタン的役割）
+function stopAlarm() {
+  alarmState = 'off';
+  alarmTargetMs = null;
+  stopAlarmCountdown();
+  stopAlarmSound();
+  updateAlarmUI();
+  showToast('✅ おはようございます！');
+}
+
+// カウントダウン管理
+function startAlarmCountdown() {
+  stopAlarmCountdown();
+  alarmTimerId = setInterval(tickAlarm, 1000);
+  tickAlarm();
+}
+function stopAlarmCountdown() {
+  if (alarmTimerId) { clearInterval(alarmTimerId); alarmTimerId = null; }
+}
+
+function tickAlarm() {
+  if (!alarmTargetMs) return;
+  const diff = alarmTargetMs - Date.now();
+  if (diff <= 0) {
+    // 鳴動開始
+    alarmState = 'ringing';
+    stopAlarmCountdown();
+    updateAlarmUI();
+    startAlarmSound();
+    return;
+  }
+  // カウントダウン表示
+  const totalSec = Math.floor(diff / 1000);
+  const hh = Math.floor(totalSec / 3600);
+  const mm = Math.floor((totalSec % 3600) / 60);
+  const ss = totalSec % 60;
+  const txt = hh > 0
+    ? `${hh}時間${String(mm).padStart(2,'0')}分${String(ss).padStart(2,'0')}秒`
+    : `${mm}分${String(ss).padStart(2,'0')}秒`;
+  const cdEl = document.getElementById('alarm-countdown-text');
+  if (cdEl) cdEl.textContent = txt;
+}
+
+// UI 同期
+function updateAlarmUI() {
+  const card    = document.getElementById('alarm-card');
+  const badge   = document.getElementById('alarm-status-badge');
+  const normal  = document.getElementById('alarm-actions-normal');
+  const setEl   = document.getElementById('alarm-actions-set');
+  const ringing = document.getElementById('alarm-actions-ringing');
+  const countdown = document.getElementById('alarm-countdown');
+
+  card.className = 'alarm-card';
+  badge.className = 'alarm-status-badge';
+
+  if (alarmState === 'off') {
+    badge.textContent = 'オフ'; badge.classList.add('off');
+    normal.style.display  = 'flex';
+    setEl.style.display   = 'none';
+    ringing.style.display = 'none';
+    countdown.style.display = 'none';
+  } else if (alarmState === 'set') {
+    const timeStr = alarmSource === 'goal'
+      ? (userProfile?.goalWake || '--:--')
+      : document.getElementById('alarm-custom-input').value;
+    badge.textContent = `${timeStr} にセット中`; badge.classList.add('set');
+    card.classList.add('alarm-active');
+    normal.style.display  = 'none';
+    setEl.style.display   = 'flex';
+    ringing.style.display = 'none';
+    countdown.style.display = 'block';
+  } else if (alarmState === 'ringing') {
+    badge.textContent = '🔔 鳴動中！'; badge.classList.add('ringing');
+    card.classList.add('alarm-ringing');
+    normal.style.display  = 'none';
+    setEl.style.display   = 'none';
+    ringing.style.display = 'flex';
+    countdown.style.display = 'none';
+  }
+}
+
+// 就寝報告時に自動セット、起床報告時に自動停止
+function alarmOnSleep() {
+  // 就寝ボタン押下 → アラームがオフなら自動セット確認なしでセット
+  if (alarmState !== 'off') return; // すでにセット済みなら何もしない
+  getAudioCtx().resume();
+  let timeStr;
+  if (alarmSource === 'goal') {
+    timeStr = userProfile?.goalWake;
+    if (!timeStr) return;
+  } else {
+    timeStr = document.getElementById('alarm-custom-input').value;
+    if (!timeStr) return;
+  }
+  const [h, m] = timeStr.split(':').map(Number);
+  const now = new Date();
+  const target = new Date(now);
+  target.setHours(h, m, 0, 0);
+  if (target <= now) target.setDate(target.getDate() + 1);
+  alarmTargetMs = target.getTime();
+  alarmState = 'set';
+  updateAlarmUI();
+  startAlarmCountdown();
+  showToast(`⏰ アラームを自動セットしました（${timeStr}）`);
+}
+
+function alarmOnWake() {
+  if (alarmState === 'ringing') {
+    stopAlarm();
+  } else if (alarmState === 'set') {
+    cancelAlarm();
+    showToast('起床報告に合わせてアラームを解除しました');
+  }
+}
+
+// ============================================================
+//  SERVICE WORKER 登録 & SW連携アラーム
+// ============================================================
+let swRegistration = null;
+
+async function registerServiceWorker() {
+  if (!('serviceWorker' in navigator)) return;
+  try {
+    swRegistration = await navigator.serviceWorker.register('./service-worker.js', { scope: './' });
+    console.log('[SW] 登録完了:', swRegistration.scope);
+
+    // SWからのメッセージを受け取る
+    navigator.serviceWorker.addEventListener('message', onSwMessage);
+
+    // ページ復帰時にSWのアラーム状態を同期
+    swQueryAlarmStatus();
+  } catch (e) {
+    console.warn('[SW] 登録失敗:', e);
+  }
+}
+
+// SWからのメッセージ処理
+function onSwMessage(event) {
+  const { type } = event.data || {};
+  switch (type) {
+    case 'ALARM_FIRE':
+      // SWがアラーム時刻を検知 → ページ側で音を鳴らす
+      alarmState = 'ringing';
+      alarmTargetMs = null;
+      stopAlarmCountdown();
+      updateAlarmUI();
+      startAlarmSound();
+      showToast('⏰ 起床時刻です！');
+      break;
+    case 'ALARM_STOP_FROM_NOTIF':
+      // 通知バナーから「止める」を押した
+      stopAlarm();
+      break;
+    case 'ALARM_STATUS':
+      // SW側にアラームが残っていたら復元
+      if (event.data.active && event.data.targetMs > Date.now()) {
+        alarmTargetMs = event.data.targetMs;
+        alarmState = 'set';
+        updateAlarmUI();
+        startAlarmCountdown();
+      }
+      break;
+  }
+}
+
+// SWにアラームをセット
+function swSetAlarm(targetMs) {
+  if (!navigator.serviceWorker?.controller) return;
+  navigator.serviceWorker.controller.postMessage({ type: 'ALARM_SET', payload: { targetMs } });
+}
+
+// SWのアラームを解除
+function swCancelAlarm() {
+  if (!navigator.serviceWorker?.controller) return;
+  navigator.serviceWorker.controller.postMessage({ type: 'ALARM_CANCEL' });
+}
+
+// SW側の状態を問い合わせ（ページ再読み込み後の復元用）
+function swQueryAlarmStatus() {
+  if (!navigator.serviceWorker?.controller) return;
+  navigator.serviceWorker.controller.postMessage({ type: 'ALARM_QUERY' });
+}
+
+// ---- setAlarm / cancelAlarm / stopAlarm をSW連携版に上書き ----
+const _origSetAlarm = setAlarm;
+setAlarm = function() {
+  _origSetAlarm();
+  // SW にも同じ時刻を登録（バックグラウンド対応）
+  if (alarmTargetMs) swSetAlarm(alarmTargetMs);
+};
+
+const _origCancelAlarm = cancelAlarm;
+cancelAlarm = function() {
+  _origCancelAlarm();
+  swCancelAlarm();
+};
+
+const _origStopAlarm = stopAlarm;
+stopAlarm = function() {
+  _origStopAlarm();
+  swCancelAlarm();
+};
+
+// ---- 通知許可を要求（Service Worker Push通知に必要）----
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    await Notification.requestPermission();
+  }
+}
+
+// ページ読み込み時に実行
+window.addEventListener('load', () => {
+  registerServiceWorker();
+  requestNotificationPermission();
+});
+
+// ページ表示復帰時（スリープ解除など）にSW状態を同期
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') {
+    swQueryAlarmStatus();
+  }
+});
 </script>
 </body>
 </html>
