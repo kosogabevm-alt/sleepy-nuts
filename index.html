@@ -309,9 +309,11 @@
     border-radius: var(--radius); padding: 1rem 0.9rem 0.9rem;
     border: 1px solid transparent; position: relative; overflow: hidden;
     display: flex; flex-direction: column; gap: 0; transition: transform 0.2s, box-shadow 0.2s;
-    animation: fadeIn 0.4s ease; cursor: grab;
+    animation: fadeIn 0.4s ease; cursor: pointer;
+    touch-action: manipulation; user-select: none;
+    -webkit-tap-highlight-color: rgba(200,216,248,0.15);
   }
-  .status-card:active { cursor: grabbing; }
+  .status-card:active { opacity: 0.85; transform: scale(0.985); }
   .status-card:hover { transform: translateY(-2px); }
   .status-card.drag-over { border-color: var(--moon-2) !important; opacity: 0.7; }
   .status-card.dragging { opacity: 0.4; transform: scale(0.97); }
@@ -365,7 +367,7 @@
   }
   .card-name { font-size: 0.95rem; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ★ 時刻・日付ブロック */
+  /* ★ 時刻・日付ブロック（ここだけ大きく） */
   .card-time-block {
     padding: 0.6rem 0.65rem; border-radius: 10px;
     background: rgba(0,0,0,0.25); margin-bottom: 0.5rem;
@@ -452,6 +454,75 @@
   @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
   @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
   @media (max-width: 480px) { .report-btn { width: 170px; height: 170px; } .current-time { font-size: 3rem; } }
+  /* ===== メンバー詳細モーダル ===== */
+  .member-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 2000;
+    display: flex; align-items: flex-end; justify-content: center;
+    opacity: 0; transition: opacity 0.25s; pointer-events: none;
+  }
+  .member-modal-overlay.open { opacity: 1; pointer-events: auto; }
+  .member-modal {
+    width: 100%; max-width: 480px; max-height: 88vh; overflow-y: auto;
+    background: var(--night-2); border-radius: var(--radius) var(--radius) 0 0;
+    padding: 1.5rem 1.5rem 2.5rem; transform: translateY(30px);
+    transition: transform 0.28s cubic-bezier(0.34,1.1,0.64,1);
+  }
+  .member-modal-overlay.open .member-modal { transform: translateY(0); }
+  .modal-header { display: flex; align-items: center; gap: 0.9rem; margin-bottom: 1.25rem; }
+  .modal-avatar {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--night-3), var(--night-4));
+    border: 2px solid var(--moon-2); display: flex; align-items: center;
+    justify-content: center; font-size: 1.2rem; font-weight: 700; color: var(--moon); flex-shrink: 0;
+  }
+  .modal-name { font-size: 1.15rem; font-weight: 900; flex: 1; }
+  .modal-close { background: transparent; border: none; color: var(--text-2); font-size: 1.4rem; cursor: pointer; padding: 0.25rem 0.5rem; line-height: 1; }
+  .modal-section-label {
+    font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-2); margin: 1.2rem 0 0.6rem;
+  }
+  .modal-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+  .modal-stat-card {
+    background: var(--night-3); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 0.85rem 1rem;
+  }
+  .modal-stat-label { font-size: 0.68rem; color: var(--text-2); margin-bottom: 0.3rem; }
+  .modal-stat-value {
+    font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem;
+    letter-spacing: 0.04em; line-height: 1; color: var(--moon);
+  }
+  .modal-stat-value.green { color: var(--green); }
+  .modal-stat-value.yellow { color: var(--sun); }
+  .modal-stat-value.blue { color: var(--blue); }
+  .modal-stat-unit { font-size: 0.72rem; color: var(--text-2); margin-left: 0.2rem; }
+  .modal-bar-row { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.45rem; }
+  .modal-bar-label { font-size: 0.72rem; color: var(--text-2); width: 4.5rem; flex-shrink: 0; }
+  .modal-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.07); border-radius: 99px; overflow: hidden; }
+  .modal-bar-fill { height: 100%; border-radius: 99px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+  .modal-bar-fill.sleep { background: linear-gradient(90deg,#3a6ecc,#7ab0ff); }
+  .modal-bar-fill.wake  { background: linear-gradient(90deg,#c87c00,#f5c842); }
+  .modal-bar-pct { font-family: 'Bebas Neue', sans-serif; font-size: 0.9rem; width: 2.8rem; text-align: right; flex-shrink: 0; }
+  .modal-bar-pct.sleep { color: #90b8ff; }
+  .modal-bar-pct.wake  { color: var(--sun); }
+  .modal-log-list { display: flex; flex-direction: column; gap: 0.4rem; }
+  .modal-log-item {
+    display: flex; align-items: center; gap: 0.6rem;
+    padding: 0.5rem 0.75rem; border-radius: 8px;
+    background: var(--night-3); border: 1px solid var(--border); font-size: 0.82rem;
+  }
+  .modal-log-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .modal-log-dot.sleep { background: #7ab0ff; }
+  .modal-log-dot.wake  { background: var(--sun); }
+  .modal-log-type { width: 2.2rem; flex-shrink: 0; color: var(--text-2); }
+  .modal-log-time { font-family: 'Bebas Neue', sans-serif; font-size: 1rem; letter-spacing: 0.03em; }
+  .modal-log-time.sleep { color: #90b8ff; }
+  .modal-log-time.wake  { color: var(--sun); }
+  .modal-log-date { color: var(--text-2); flex: 1; text-align: right; }
+  .modal-log-badge { font-size: 0.65rem; padding: 0.15rem 0.4rem; border-radius: 99px; font-weight: 700; }
+  .modal-log-badge.ok  { background: rgba(67,233,123,0.15); color: var(--green); }
+  .modal-log-badge.ng  { background: rgba(79,172,254,0.15); color: var(--blue); }
+  .modal-loading { text-align: center; color: var(--text-2); padding: 2rem; font-size: 0.9rem; }
+
 
   /* ===== ALARM ===== */
   .alarm-card {
@@ -517,7 +588,6 @@
   .sw-status-badge.inactive { background: rgba(255,77,109,0.1);  color: var(--red);   border: 1px solid rgba(255,77,109,0.3); }
   .sw-status-badge.pending  { background: rgba(255,200,66,0.1);  color: var(--sun);   border: 1px solid rgba(255,200,66,0.3); }
   .sw-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
-
   /* ===== VOLUME SLIDER ===== */
   .alarm-volume-row {
     display: flex; align-items: center; gap: 0.75rem;
@@ -535,23 +605,19 @@
     flex: 1; height: 4px; border-radius: 99px; outline: none; cursor: pointer;
     background: linear-gradient(
       90deg,
-      var(--sun) 0%,
-      var(--sun) var(--vol, 70%),
-      rgba(255,255,255,0.12) var(--vol, 70%),
-      rgba(255,255,255,0.12) 100%
+      var(--sun) 0%, var(--sun) var(--vol, 70%),
+      rgba(255,255,255,0.12) var(--vol, 70%), rgba(255,255,255,0.12) 100%
     );
-    transition: background 0.1s;
   }
   input[type=range].volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
-    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.6); cursor: pointer;
-    transition: transform 0.15s;
+    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.5); cursor: pointer;
   }
-  input[type=range].volume-slider::-webkit-slider-thumb:active { transform: scale(1.2); }
   input[type=range].volume-slider::-moz-range-thumb {
     width: 18px; height: 18px; border-radius: 50%; border: none;
-    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.6); cursor: pointer;
+    background: var(--sun); box-shadow: 0 0 8px rgba(245,168,35,0.5); cursor: pointer;
   }
+
 </style>
 </head>
 <body>
@@ -655,10 +721,11 @@
           </div>
         </div>
         <div class="alarm-actions" id="alarm-actions-normal">
-          <button class="btn-alarm-set" onclick="setAlarm()">🔔 アラームをセット</button>
+          <div style="font-size:0.82rem;color:var(--text-2);text-align:center;padding:0.5rem 0">
+            🌙 就寝ボタンを押すと自動でアラームがセットされます
+          </div>
         </div>
         <div class="alarm-actions" id="alarm-actions-set" style="display:none">
-          <button class="btn-alarm-set" style="background:linear-gradient(135deg,#1a3a1a,#2a6a2a)" onclick="setAlarm()">🔁 更新</button>
           <button class="btn-alarm-cancel" onclick="cancelAlarm()">✕ 解除</button>
         </div>
         <div class="alarm-actions" id="alarm-actions-ringing" style="display:none">
@@ -668,8 +735,7 @@
           <span>💤 スヌーズ中 … <span id="snooze-time-text">--:--</span> に再アラーム</span>
           <button class="btn-snooze-cancel" onclick="cancelAlarm()">解除</button>
         </div>
-
-        <!-- ★ 音量スライダー（新規追加） -->
+        <!-- ★ 音量スライダー -->
         <div class="alarm-volume-row">
           <span class="alarm-volume-label">🔊 音量</span>
           <input type="range" class="volume-slider" id="alarm-volume"
@@ -780,6 +846,19 @@
   </div>
 </div>
 
+
+<!-- メンバー詳細モーダル -->
+<div class="member-modal-overlay" id="member-modal-overlay">
+  <div class="member-modal" id="member-modal-inner">
+    <div class="modal-header">
+      <div class="modal-avatar" id="modal-avatar">?</div>
+      <span class="modal-name" id="modal-name">…</span>
+      <button class="modal-close" onclick="closeMemberModal()">✕</button>
+    </div>
+    <div id="modal-body"><div class="modal-loading">読み込み中…</div></div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 
@@ -816,8 +895,8 @@ let lastReportType = null;
 const userStatusMap = new Map();
 
 // 並び替え
-let sortMode = 'custom';
-let customOrder = [];
+let sortMode = 'custom';  // 'custom' | 'status' | 'time' | 'name'
+let customOrder = [];     // uid の配列（カスタム順）
 const CUSTOM_ORDER_KEY = 'zenryoku_custom_order';
 
 // 通知設定（localStorage保存）
@@ -854,7 +933,178 @@ async function handleRegister() {
     });
   } catch(e) { showAuthError(getFirebaseErrorMsg(e.code)); }
 }
-function handleLogout() { if (unsubTimeline) unsubTimeline(); auth.signOut(); }
+
+// ============================================================
+//  MEMBER DETAIL MODAL
+// ============================================================
+function openMemberModal(u) {
+  document.getElementById('modal-avatar').textContent = u.displayName.charAt(0);
+  document.getElementById('modal-name').textContent   = u.displayName;
+  document.getElementById('modal-body').innerHTML     = '<div class="modal-loading">読み込み中…</div>';
+  document.getElementById('member-modal-overlay').classList.add('open');
+  loadMemberDetail(u);
+}
+
+function closeMemberModal() {
+  document.getElementById('member-modal-overlay').classList.remove('open');
+}
+// オーバーレイ（背景暗部）タップで閉じる — PC・スマホ共通
+(function() {
+  const ov = document.getElementById('member-modal-overlay');
+  if (!ov) return;
+  let _ovMoved = false, _ovX = 0, _ovY = 0;
+  ov.addEventListener('pointerdown', (e) => {
+    _ovMoved = false; _ovX = e.clientX; _ovY = e.clientY;
+  }, { passive: true });
+  ov.addEventListener('pointermove', (e) => {
+    if (Math.abs(e.clientX - _ovX) > 8 || Math.abs(e.clientY - _ovY) > 8) _ovMoved = true;
+  }, { passive: true });
+  ov.addEventListener('pointerup', (e) => {
+    if (!_ovMoved && e.target === ov) closeMemberModal();
+  });
+})();
+
+async function loadMemberDetail(u) {
+  try {
+    const since = new Date();
+    since.setDate(since.getDate() - 7);
+    since.setHours(0, 0, 0, 0);
+    // 複合インデックス不要：uid だけで全件取得し JS 側でフィルタ・ソート
+    const snap = await db.collection('logs')
+      .where('uid', '==', u.uid)
+      .get();
+
+    const sinceMs = since.getTime();
+    const logs = [];
+    snap.forEach(doc => {
+      const d = doc.data();
+      const ms = d.timestamp?.toMillis?.() ?? 0;
+      if (ms >= sinceMs) logs.push(d);
+    });
+    // 新しい順にソート
+    logs.sort((a, b) => (b.timestamp?.toMillis?.() ?? 0) - (a.timestamp?.toMillis?.() ?? 0));
+
+    // ── 統計計算 ──
+    const sleepLogs = logs.filter(l => l.type === 'sleep');
+    const wakeLogs  = logs.filter(l => l.type === 'wake');
+
+    const sleepAchieved = sleepLogs.filter(l => l.isOnTime).length;
+    const wakeAchieved  = wakeLogs.filter(l => l.isOnTime).length;
+    const sleepPct = sleepLogs.length ? Math.round(sleepAchieved / sleepLogs.length * 100) : null;
+    const wakePct  = wakeLogs.length  ? Math.round(wakeAchieved  / wakeLogs.length  * 100) : null;
+    const overallTotal    = logs.filter(l => l.isOnTime !== null && l.isOnTime !== undefined).length;
+    const overallAchieved = logs.filter(l => l.isOnTime === true).length;
+    const overallPct = overallTotal ? Math.round(overallAchieved / overallTotal * 100) : null;
+
+    // 平均睡眠時間：同日の sleep→wake ペアを計算
+    let avgSleepMin = null;
+    {
+      const sorted = [...logs].sort((a, b) => {
+        const ta = a.timestamp?.toMillis ? a.timestamp.toMillis() : 0;
+        const tb = b.timestamp?.toMillis ? b.timestamp.toMillis() : 0;
+        return ta - tb;
+      });
+      const durations = [];
+      let lastSleep = null;
+      for (const l of sorted) {
+        if (l.type === 'sleep') { lastSleep = l; }
+        else if (l.type === 'wake' && lastSleep) {
+          const st = lastSleep.timestamp?.toMillis ? lastSleep.timestamp.toMillis() : 0;
+          const wt = l.timestamp?.toMillis ? l.timestamp.toMillis() : 0;
+          const diff = (wt - st) / 60000;
+          if (diff > 60 && diff < 1440) durations.push(diff); // 1〜24時間のみ有効
+          lastSleep = null;
+        }
+      }
+      if (durations.length) avgSleepMin = Math.round(durations.reduce((s,v)=>s+v,0) / durations.length);
+    }
+
+    // 連続達成日数（就寝+起床 両方達成した日を連続でカウント）
+    let streak = 0;
+    {
+      const dayMap = new Map();
+      logs.forEach(l => {
+        const ts = l.timestamp?.toDate ? l.timestamp.toDate() : null;
+        if (!ts) return;
+        const key = ts.getFullYear() + '-' + (ts.getMonth()+1) + '-' + ts.getDate();
+        if (!dayMap.has(key)) dayMap.set(key, { sleep: null, wake: null });
+        if (l.type === 'sleep') dayMap.get(key).sleep = l.isOnTime;
+        else                    dayMap.get(key).wake  = l.isOnTime;
+      });
+      const today = new Date();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const key = d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+        const day = dayMap.get(key);
+        if (day && day.sleep === true && day.wake === true) streak++;
+        else if (i > 0) break;
+      }
+    }
+
+    // ── HTML生成 ──
+    const sleepTimeStr = avgSleepMin !== null
+      ? `${Math.floor(avgSleepMin/60)}<span class="modal-stat-unit">時間</span>${String(avgSleepMin%60).padStart(2,'0')}<span class="modal-stat-unit">分</span>`
+      : '－';
+    const overallColor = overallPct === null ? '' : overallPct >= 80 ? 'green' : overallPct >= 50 ? 'yellow' : 'blue';
+
+    let logsHTML = '';
+    logs.slice(0, 14).forEach(l => {
+      const typeLabel = l.type === 'sleep' ? '就寝' : '起床';
+      const badgeHTML = l.isOnTime === true
+        ? '<span class="modal-log-badge ok">達成</span>'
+        : l.isOnTime === false ? '<span class="modal-log-badge ng">未達</span>' : '';
+      logsHTML += `
+        <div class="modal-log-item">
+          <span class="modal-log-dot ${l.type}"></span>
+          <span class="modal-log-type">${typeLabel}</span>
+          <span class="modal-log-time ${l.type}">${l.localTime || '--:--'}</span>
+          <span class="modal-log-date">${l.localDate || ''}</span>
+          ${badgeHTML}
+        </div>`;
+    });
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="modal-section-label">直近7日間の統計</div>
+      <div class="modal-stats-grid">
+        <div class="modal-stat-card">
+          <div class="modal-stat-label">総合達成率</div>
+          <div class="modal-stat-value ${overallColor}">${overallPct !== null ? overallPct + '%' : '－'}</div>
+        </div>
+        <div class="modal-stat-card">
+          <div class="modal-stat-label">平均睡眠時間</div>
+          <div class="modal-stat-value yellow" style="font-size:1.4rem">${sleepTimeStr}</div>
+        </div>
+        <div class="modal-stat-card">
+          <div class="modal-stat-label">連続両立達成</div>
+          <div class="modal-stat-value ${streak >= 3 ? 'green' : ''}">${streak}<span class="modal-stat-unit">日</span></div>
+        </div>
+        <div class="modal-stat-card">
+          <div class="modal-stat-label">7日間の報告数</div>
+          <div class="modal-stat-value">${logs.length}<span class="modal-stat-unit">回</span></div>
+        </div>
+      </div>
+      <div class="modal-section-label">目標達成率</div>
+      <div class="modal-bar-row">
+        <span class="modal-bar-label">🌙 就寝</span>
+        <div class="modal-bar-track"><div class="modal-bar-fill sleep" style="width:${sleepPct??0}%"></div></div>
+        <span class="modal-bar-pct sleep">${sleepPct !== null ? sleepPct + '%' : '－'}</span>
+      </div>
+      <div class="modal-bar-row">
+        <span class="modal-bar-label">☀️ 起床</span>
+        <div class="modal-bar-track"><div class="modal-bar-fill wake" style="width:${wakePct??0}%"></div></div>
+        <span class="modal-bar-pct wake">${wakePct !== null ? wakePct + '%' : '－'}</span>
+      </div>
+      <div class="modal-section-label">最近の記録</div>
+      <div class="modal-log-list">${logsHTML || '<div style="color:var(--text-2);font-size:0.85rem;padding:0.5rem 0">記録がありません</div>'}</div>
+    `;
+  } catch(e) {
+    console.error('[loadMemberDetail]', e);
+    document.getElementById('modal-body').innerHTML = '<div class="modal-loading">データの取得に失敗しました<br><small style="color:var(--text-2)">' + e.message + '</small></div>';
+  }
+}
+
+function handleLogout() { if (unsubTimeline) unsubTimeline(); if (unsubNotifLogs) unsubNotifLogs(); auth.signOut(); }
 function showAuthError(msg) {
   const el = document.getElementById('auth-error');
   el.textContent = msg; el.style.display = 'block';
@@ -894,11 +1144,28 @@ async function loadUserProfile() {
 }
 async function fetchLastReportType() {
   try {
+    // users/{uid}.lastStatus に最新の報告種別を書いているのでそこから読む
+    // （まだ lastStatus がない古いアカウントは logs にフォールバック）
+    const doc = await db.collection('users').doc(currentUser.uid).get();
+    const lastStatus = doc.exists ? doc.data().lastStatus : null;
+    if (lastStatus?.type) {
+      lastReportType = lastStatus.type;
+      return;
+    }
+    // フォールバック：logs から1件取得
+    // where+orderBy 複合インデックス不要：uid のみで取得し JS 側で最新を選ぶ
     const snap = await db.collection('logs')
-      .where('uid','==',currentUser.uid).orderBy('timestamp','desc').limit(1).get();
-    lastReportType = snap.empty
-      ? ((new Date().getHours()>=18||new Date().getHours()<9)?'wake':'sleep')
-      : snap.docs[0].data().type;
+      .where('uid','==',currentUser.uid).get();
+    if (snap.empty) {
+      lastReportType = (new Date().getHours()>=18||new Date().getHours()<9)?'wake':'sleep';
+    } else {
+      let latestMs = -1, latestType = null;
+      snap.forEach(d => {
+        const ms = d.data().timestamp?.toMillis?.() ?? 0;
+        if (ms > latestMs) { latestMs = ms; latestType = d.data().type; }
+      });
+      lastReportType = latestType || 'wake';
+    }
   } catch(e) { lastReportType = 'wake'; }
 }
 
@@ -975,9 +1242,19 @@ async function handleReport() {
     isOnTime, goalTime: goalTime || null, localTime, localDate
   };
   try {
-    await db.collection('logs').add(logData);
+    // logs に追記 ＆ users/{uid} の lastStatus を同時更新（バッチ書き込み）
+    const batch = db.batch();
+    batch.set(db.collection('logs').doc(), logData);
+    batch.set(db.collection('users').doc(currentUser.uid), {
+      lastStatus: {
+        type, localTime, localDate, isOnTime, goalTime: goalTime || null,
+        displayName: userProfile.displayName || 'ユーザー',
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }
+    }, { merge: true });
+    await batch.commit();
     lastReportType = type;
-    // ★ アラーム連動（新規追加）
+    // アラーム連動（就寝→自動セット、起床→自動停止）
     if (type === 'sleep') alarmOnSleep();
     else if (type === 'wake') alarmOnWake();
     updateReportButton();
@@ -1071,12 +1348,18 @@ function fireNotification(data) {
   if (isSleep && !notifPrefs.sleep) return;
   if (!isSleep && !notifPrefs.wake) return;
   const name = data.displayName || 'メンバー';
-  const icon = isSleep ? '🌙' : '☀️';
+  const icon = isSleep ? '\u{1F319}' : '\u2600\uFE0F';
   const action = isSleep ? '就寝しました' : '起床しました';
-  new Notification(`${icon} ${name}が${action}`, {
-    body: `${data.localTime || ''}${data.localDate ? ' (' + data.localDate + ')' : ''}`,
-    tag: 'zenryoku-' + data.uid
-  });
+  const title = icon + ' ' + name + 'が' + action;
+  const body  = (data.localTime || '') + (data.localDate ? ' (' + data.localDate + ')' : '');
+  const tag   = 'zenryoku-member-' + data.uid;
+  // Service Worker経由で通知（バックグラウンドでも届く）
+  if (swRegistration) {
+    swRegistration.showNotification(title, { body, tag, icon: 'icons/icon-192x192.png' })
+      .catch(function() { new Notification(title, { body, tag }); });
+  } else {
+    new Notification(title, { body, tag });
+  }
 }
 
 // ============================================================
@@ -1104,39 +1387,77 @@ function setSortMode(mode) {
 
 // ============================================================
 //  TIMELINE SUBSCRIPTION
+//  ・users コレクション全件監視 → メンバー表示（何人いても全員表示）
+//  ・logs  直近10件監視         → 通知発火専用（新着検知のみ）
 // ============================================================
+let unsubNotifLogs = null;
+
 function subscribeTimeline() {
-  if (unsubTimeline) unsubTimeline();
+  if (unsubTimeline)    unsubTimeline();
+  if (unsubNotifLogs)   unsubNotifLogs();
+
   const grid = document.getElementById('status-grid');
   grid.innerHTML = '<div class="loading" style="grid-column:1/-1">読み込み中…</div>';
 
-  let isFirst = true;
-  unsubTimeline = db.collection('logs')
-    .orderBy('timestamp', 'desc')
-    .limit(50)
-    .onSnapshot((snapshot) => {
-      if (!isFirst) {
-        snapshot.docChanges().forEach((change) => {
-          if (change.type === 'added') {
-            fireNotification(change.doc.data());
-          }
-        });
-      }
-      isFirst = false;
-
+  // ── ① users コレクション全件監視（メンバー表示） ──
+  unsubTimeline = db.collection('users')
+    .onSnapshot(async (snapshot) => {
       userStatusMap.clear();
+
+      // lastStatus がないユーザーの uid を収集してバックフィル対象にする
+      const needsBackfill = [];
       snapshot.forEach((doc) => {
         const d = doc.data();
-        if (!d.uid) return;
-        if (!userStatusMap.has(d.uid)) {
-          userStatusMap.set(d.uid, {
-            uid: d.uid, displayName: d.displayName || 'ユーザー',
-            type: d.type, localTime: d.localTime || '',
-            localDate: d.localDate || '', timestamp: d.timestamp,
-            isOnTime: d.isOnTime ?? null, goalTime: d.goalTime || null
+        const uid = doc.id;
+        if (d.lastStatus) {
+          const s = d.lastStatus;
+          userStatusMap.set(uid, {
+            uid,
+            displayName: s.displayName || d.displayName || 'ユーザー',
+            type:        s.type,
+            localTime:   s.localTime   || '',
+            localDate:   s.localDate   || '',
+            timestamp:   s.timestamp,
+            isOnTime:    s.isOnTime    ?? null,
+            goalTime:    s.goalTime    || null
           });
+        } else if (d.displayName) {
+          // lastStatus はまだないが users に登録はされているユーザー → logs から補完
+          needsBackfill.push({ uid, displayName: d.displayName });
         }
       });
+
+      // バックフィル：logs から最新1件を取得して users に書き戻す
+      if (needsBackfill.length > 0) {
+        await Promise.all(needsBackfill.map(async ({ uid, displayName }) => {
+          try {
+            // where+orderBy の複合インデックス不要：uid だけで取得しJS側で最新を選ぶ
+            const snap = await db.collection('logs')
+              .where('uid', '==', uid)
+              .get();
+            if (snap.empty) return;
+            let latestDoc = null, latestMs = -1;
+            snap.forEach(d => {
+              const ms = d.data().timestamp?.toMillis?.() ?? 0;
+              if (ms > latestMs) { latestMs = ms; latestDoc = d; }
+            });
+            if (!latestDoc) return;
+            const l = latestDoc.data();
+            const lastStatus = {
+              type:        l.type,
+              localTime:   l.localTime   || '',
+              localDate:   l.localDate   || '',
+              isOnTime:    l.isOnTime    ?? null,
+              goalTime:    l.goalTime    || null,
+              displayName: l.displayName || displayName,
+              timestamp:   l.timestamp
+            };
+            // users ドキュメントに書き戻す（次回からバックフィル不要になる）
+            await db.collection('users').doc(uid).set({ lastStatus }, { merge: true });
+            userStatusMap.set(uid, { uid, ...lastStatus });
+          } catch(bfErr) { console.warn('[backfill] uid=' + uid, bfErr.message); }
+        }));
+      }
 
       userStatusMap.forEach((_, uid) => {
         if (!customOrder.includes(uid)) customOrder.push(uid);
@@ -1149,6 +1470,20 @@ function subscribeTimeline() {
     }, (err) => {
       console.error(err);
       grid.innerHTML = '<div class="empty-timeline">データの取得に失敗しました</div>';
+    });
+
+  // ── ② logs 直近10件監視（通知専用） ──
+  let isFirstNotif = true;
+  unsubNotifLogs = db.collection('logs')
+    .orderBy('timestamp', 'desc')
+    .limit(10)
+    .onSnapshot((snapshot) => {
+      if (!isFirstNotif) {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added') fireNotification(change.doc.data());
+        });
+      }
+      isFirstNotif = false;
     });
 }
 
@@ -1196,7 +1531,7 @@ function renderStatusCard(u) {
   const isSleeping  = u.type === 'sleep';
   const stateClass  = isSleeping ? 'sleeping' : 'awake';
   const badgeLabel  = isSleeping ? '睡眠中' : '起床中';
-  const typeLabel   = isSleeping ? '就寝' : '起床';
+  const typeLabel   = isSleeping ? '就寝' : '起床';  // ← 変更箇所
   const goalIcon    = isSleeping ? '🌙' : '☀️';
   const goalLabel   = isSleeping ? '就寝目標' : '起床目標';
 
@@ -1225,7 +1560,21 @@ function renderStatusCard(u) {
   const card = document.createElement('div');
   card.className = `status-card ${stateClass}`;
   card.dataset.uid = u.uid;
-  card.draggable = sortMode === 'custom';
+  // draggable は drag-handle に mousedown したときだけ一時的に true にする
+  card.draggable = false;
+
+  // ── タップ検出（PC mouse / スマホ touch 両対応）──
+  let _tapMoved = false, _tapX = 0, _tapY = 0;
+  card.addEventListener('pointerdown', (e) => {
+    _tapMoved = false; _tapX = e.clientX; _tapY = e.clientY;
+  }, { passive: true });
+  card.addEventListener('pointermove', (e) => {
+    if (Math.abs(e.clientX - _tapX) > 8 || Math.abs(e.clientY - _tapY) > 8) _tapMoved = true;
+  }, { passive: true });
+  card.addEventListener('pointerup', () => {
+    if (!_tapMoved && !card._dragged) openMemberModal(u);
+    card._dragged = false;
+  });
   card.innerHTML = `
     <div class="card-top">
       <span class="card-status-badge ${stateClass}">
@@ -1247,11 +1596,25 @@ function renderStatusCard(u) {
     ${goalHTML}
     ${achievementBadge}
   `;
+  // drag-handle のみドラッグ可能にする
+  if (sortMode === 'custom') {
+    const handle = card.querySelector('.drag-handle');
+    if (handle) {
+      handle.style.cursor = 'grab';
+      handle.addEventListener('pointerdown', () => {
+        card.draggable = true;
+      });
+      card.addEventListener('dragend', () => {
+        card.draggable = false;
+        card._dragged = true;
+      });
+    }
+  }
   return card;
 }
 
 // ============================================================
-//  DRAG & DROP
+//  DRAG & DROP（カスタム並び替え）
 // ============================================================
 let dragSrcEl = null;
 
@@ -1269,6 +1632,7 @@ function setupDragDrop() {
 function onDragStart(e) {
   dragSrcEl = this;
   this.classList.add('dragging');
+  this._dragged = true;
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/plain', this.dataset.uid);
 }
@@ -1418,8 +1782,8 @@ function escapeHtml(s) {
 ================================================================ */
 
 /* ----  状態管理  ---- */
-let alarmState    = 'off';
-let alarmSource   = 'goal';
+let alarmState    = 'off';    // 'off' | 'set' | 'snooze' | 'ringing'
+let alarmSource   = 'goal';   // 'goal' | 'custom'
 let alarmTargetMs = null;
 let alarmTimerId  = null;
 
@@ -1427,22 +1791,16 @@ let alarmTimerId  = null;
 let audioCtx          = null;
 let alarmBeepInterval = null;
 
-/* ★ 音量（0.0〜1.0）、初期値 70%  */
+/* ★ アプリ内音量 (0.0〜1.0)、初期値 70% */
 let alarmVolume = 0.7;
 
-/* ★ 音量スライダーのイベントハンドラ */
 function onAlarmVolumeChange(val) {
   alarmVolume = val / 100;
-  // 数値ラベル更新
   document.getElementById('alarm-volume-val').textContent = val + '%';
-  // スライダーのグラデーション（塗り済み部分）を CSS custom property で更新
   const slider = document.getElementById('alarm-volume');
   if (slider) slider.style.setProperty('--vol', val + '%');
-  // 鳴動中なら音量を即反映（一旦停止して再開）
-  if (alarmState === 'ringing') {
-    stopAlarmSound();
-    startAlarmSound();
-  }
+  // 鳴動中なら即反映
+  if (alarmState === 'ringing') { stopAlarmSound(); startAlarmSound(); }
 }
 
 function getAudioCtx() {
@@ -1468,7 +1826,6 @@ function playBeepPattern() {
     osc.frequency.value = i % 2 === 0 ? 880 : 1100;
     const t = ctx.currentTime + offset;
     gain.gain.setValueAtTime(0, t);
-    // ★ alarmVolume を使用（スマホ側の音量設定に依存しない独自音量）
     gain.gain.linearRampToValueAtTime(alarmVolume, t + 0.02);
     gain.gain.linearRampToValueAtTime(0, t + 0.18);
     osc.start(t); osc.stop(t + 0.2);
@@ -1526,6 +1883,7 @@ function setAlarm() {
   updateAlarmUI();
   startAlarmCountdown();
   swSetAlarm(alarmTargetMs);
+  saveAlarmState();
   showToast(`⏰ アラームをセットしました（${timeStr}）`);
 }
 
@@ -1538,6 +1896,7 @@ function cancelAlarm() {
   stopAlarmSound();
   updateAlarmUI();
   swCancelAlarm();
+  saveAlarmState();
   showToast(wasSnooze ? 'スヌーズを解除しました' : 'アラームを解除しました');
 }
 
@@ -1549,6 +1908,7 @@ function stopAlarm() {
   stopAlarmSound();
   updateAlarmUI();
   swCancelAlarm();
+  saveAlarmState();
   showToast('✅ おはようございます！');
 }
 
@@ -1562,6 +1922,7 @@ function snoozeAlarm(minutes = 5) {
   updateAlarmUI();
   startAlarmCountdown();
   swSetAlarm(snoozeMs);
+  saveAlarmState();
   showToast(`💤 ${minutes}分後に再アラームします`);
 }
 
@@ -1647,6 +2008,36 @@ function updateAlarmUI() {
   }
 }
 
+/* ----  アラーム状態の localStorage 永続化  ---- */
+const ALARM_STORAGE_KEY = 'ZENRYOKU_ALARM_STATE';
+function saveAlarmState() {
+  try {
+    if (alarmState === 'off') {
+      localStorage.removeItem(ALARM_STORAGE_KEY);
+    } else {
+      localStorage.setItem(ALARM_STORAGE_KEY, JSON.stringify({
+        alarmState, alarmTargetMs, alarmSource
+      }));
+    }
+  } catch(_) {}
+}
+function restoreAlarmStateFromStorage() {
+  try {
+    const raw = localStorage.getItem(ALARM_STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (!saved.alarmTargetMs || saved.alarmTargetMs <= Date.now()) {
+      localStorage.removeItem(ALARM_STORAGE_KEY);
+      return;
+    }
+    alarmState    = saved.alarmState || 'set';
+    alarmTargetMs = saved.alarmTargetMs;
+    alarmSource   = saved.alarmSource || 'goal';
+    updateAlarmUI();
+    startAlarmCountdown();
+  } catch(_) {}
+}
+
 /* ----  就寝報告連動 → 自動セット  ---- */
 function alarmOnSleep() {
   if (alarmState !== 'off') return;
@@ -1658,25 +2049,17 @@ function alarmOnSleep() {
   updateAlarmUI();
   startAlarmCountdown();
   swSetAlarm(alarmTargetMs);
+  saveAlarmState();
   showToast(`⏰ アラームを自動セットしました（${timeStr}）`);
 }
 
-/* ----  ★ 起床報告連動 → アラーム自動停止  ---- */
+/* ----  起床報告連動 → 自動解除  ---- */
 function alarmOnWake() {
-  if (alarmState === 'ringing') {
-    // 鳴動中なら完全停止
-    stopAlarm();
-  } else if (alarmState === 'set' || alarmState === 'snooze') {
-    // セット済み/スヌーズ中なら解除
-    alarmState    = 'off';
-    alarmTargetMs = null;
-    stopAlarmCountdown();
-    stopAlarmSound();
-    updateAlarmUI();
-    swCancelAlarm();
-    showToast('☀️ 起床報告に合わせてアラームを解除しました');
+  if (alarmState === 'ringing') stopAlarm();
+  else if (alarmState === 'set' || alarmState === 'snooze') {
+    cancelAlarm();
+    showToast('起床報告に合わせてアラームを解除しました');
   }
-  // 'off' の場合は何もしない
 }
 
 /* ================================================================
@@ -1738,8 +2121,15 @@ function onSwMessage(event) {
       break;
     case 'ALARM_STATUS':
       if (event.data.active && event.data.targetMs && event.data.targetMs > Date.now()) {
-        alarmTargetMs = event.data.targetMs; alarmState = 'set';
+        alarmTargetMs = event.data.targetMs;
+        // alarmState が既に復元済みでなければ 'set' にする
+        if (alarmState === 'off') alarmState = 'set';
         updateAlarmUI(); startAlarmCountdown();
+        saveAlarmState();
+      } else if (!event.data.active && alarmState !== 'off') {
+        // SW側にアラームがない → 過去に解除済み（端末再起動など）
+        alarmState = 'off'; alarmTargetMs = null;
+        stopAlarmCountdown(); updateAlarmUI(); saveAlarmState();
       }
       break;
     case 'ALARM_SET_ACK':
@@ -1785,12 +2175,14 @@ async function requestNotificationPermission() {
    ページイベント
 ================================================================ */
 window.addEventListener('load', () => {
+  // アラーム状態をまず localStorage から即時復元（SW照会より速い）
+  restoreAlarmStateFromStorage();
   registerServiceWorker();
   requestNotificationPermission();
   updateSwStatusBadge('pending', 'SW確認中…');
-  // ★ 音量スライダーの初期グラデーションを設定
-  const slider = document.getElementById('alarm-volume');
-  if (slider) slider.style.setProperty('--vol', '70%');
+  // 音量スライダーの初期グラデーション
+  const _slider = document.getElementById('alarm-volume');
+  if (_slider) _slider.style.setProperty('--vol', '70%');
 });
 
 document.addEventListener('visibilitychange', () => {
