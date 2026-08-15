@@ -1,0 +1,301 @@
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ビーチゴミ箱アーケード</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #131a3d;
+    overflow: hidden;
+  }
+  .frame {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #131a3d;
+  }
+  svg { width: 100%; height: 100%; display: block; }
+  text { font-family: -apple-system, "Hiragino Kaku Gothic ProN", "Noto Sans JP", system-ui, sans-serif; }
+</style>
+<div class="frame">
+<svg id="scene" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0d1230"/>
+      <stop offset="42%" stop-color="#2c2864"/>
+      <stop offset="75%" stop-color="#8a4a72"/>
+      <stop offset="100%" stop-color="#ff9a5c"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#123f52"/>
+      <stop offset="100%" stop-color="#0d2c3a"/>
+    </linearGradient>
+    <linearGradient id="sand" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e9c98f"/>
+      <stop offset="100%" stop-color="#c79f61"/>
+    </linearGradient>
+    <linearGradient id="cabinetBody" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#0f5b5d"/>
+      <stop offset="45%" stop-color="#1f8a8c"/>
+      <stop offset="100%" stop-color="#2fb0ae"/>
+    </linearGradient>
+    <linearGradient id="cabinetLid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2fb0ae"/>
+      <stop offset="100%" stop-color="#0f5b5d"/>
+    </linearGradient>
+    <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff3cf" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#ffd27a" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ffd27a" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="burstGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff6da" stop-opacity="1"/>
+      <stop offset="45%" stop-color="#ffcf4d" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#ffcf4d" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="medalShine" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#fff6da"/>
+      <stop offset="55%" stop-color="#ffcf4d"/>
+      <stop offset="100%" stop-color="#b5781f"/>
+    </radialGradient>
+    <filter id="softBlur" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+
+  <!-- sky -->
+  <rect x="0" y="0" width="1600" height="620" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#fef6e4">
+    <circle cx="120" cy="70" r="1.6"/><circle cx="220" cy="140" r="1.2"/><circle cx="340" cy="60" r="1.4"/>
+    <circle cx="470" cy="110" r="1.1"/><circle cx="90" cy="220" r="1.3"/><circle cx="1500" cy="90" r="1.5"/>
+    <circle cx="1420" cy="180" r="1.1"/><circle cx="1310" cy="60" r="1.3"/><circle cx="1200" cy="140" r="1.2"/>
+    <circle cx="620" cy="50" r="1.2"/><circle cx="760" cy="90" r="1.1"/><circle cx="60" cy="330" r="1.2"/>
+  </g>
+
+  <!-- moon -->
+  <circle cx="1400" cy="130" r="120" fill="url(#moonGlow)"/>
+  <circle cx="1400" cy="130" r="34" fill="#fff6da"/>
+
+  <!-- small fireworks, upper sky -->
+  <g id="firework-a"></g>
+  <g id="firework-b"></g>
+
+  <!-- distant sea -->
+  <rect x="0" y="560" width="1600" height="90" fill="url(#sea)"/>
+  <g stroke="#bfe8e0" stroke-opacity="0.35" stroke-width="2" fill="none">
+    <path d="M0,590 Q80,580 160,590 T320,590 T480,590 T640,590 T800,590 T960,590 T1120,590 T1280,590 T1440,590 T1600,590"/>
+    <path d="M0,615 Q90,606 180,615 T360,615 T540,615 T720,615 T900,615 T1080,615 T1260,615 T1440,615 T1600,615"/>
+  </g>
+
+  <!-- beach sand -->
+  <rect x="0" y="640" width="1600" height="360" fill="url(#sand)"/>
+  <g fill="#c79f61" opacity="0.5">
+    <ellipse cx="180" cy="760" rx="90" ry="10"/>
+    <ellipse cx="1440" cy="820" rx="110" ry="12"/>
+    <ellipse cx="120" cy="920" rx="140" ry="14"/>
+    <ellipse cx="1500" cy="960" rx="130" ry="14"/>
+  </g>
+
+  <!-- palm trees -->
+  <g id="palm-left" transform="translate(150,430)">
+    <rect x="-9" y="0" width="18" height="330" rx="8" fill="#101a30"/>
+    <path d="M0,0 C-70,-40 -120,-90 -150,-70 C-110,-40 -60,-20 0,10" fill="#101a30"/>
+    <path d="M0,0 C60,-50 100,-110 140,-100 C100,-60 50,-30 0,15" fill="#101a30"/>
+    <path d="M0,0 C-40,-70 -50,-130 -30,-160 C0,-120 10,-60 5,-5" fill="#101a30"/>
+    <path d="M0,0 C10,-80 40,-130 80,-150 C60,-100 30,-50 3,-3" fill="#101a30"/>
+    <path d="M0,0 C-10,-30 0,-70 15,-95" fill="none"/>
+  </g>
+  <g id="palm-right" transform="translate(1460,410) scale(-1,1)">
+    <rect x="-9" y="0" width="18" height="330" rx="8" fill="#101a30"/>
+    <path d="M0,0 C-70,-40 -120,-90 -150,-70 C-110,-40 -60,-20 0,10" fill="#101a30"/>
+    <path d="M0,0 C60,-50 100,-110 140,-100 C100,-60 50,-30 0,15" fill="#101a30"/>
+    <path d="M0,0 C-40,-70 -50,-130 -30,-160 C0,-120 10,-60 5,-5" fill="#101a30"/>
+    <path d="M0,0 C10,-80 40,-130 80,-150 C60,-100 30,-50 3,-3" fill="#101a30"/>
+  </g>
+
+  <!-- string lights across the top of the scene -->
+  <path d="M40,60 Q800,180 1560,50" stroke="#3a3260" stroke-width="3" fill="none" opacity="0.7"/>
+  <g id="bulbs"></g>
+
+  <!-- boardwalk platform -->
+  <g>
+    <rect x="470" y="860" width="660" height="120" fill="#4a3220"/>
+    <g stroke="#3a2718" stroke-width="3" opacity="0.6">
+      <line x1="500" y1="860" x2="500" y2="980"/>
+      <line x1="560" y1="860" x2="560" y2="980"/>
+      <line x1="620" y1="860" x2="620" y2="980"/>
+      <line x1="680" y1="860" x2="680" y2="980"/>
+      <line x1="740" y1="860" x2="740" y2="980"/>
+      <line x1="800" y1="860" x2="800" y2="980"/>
+      <line x1="860" y1="860" x2="860" y2="980"/>
+      <line x1="920" y1="860" x2="920" y2="980"/>
+      <line x1="980" y1="860" x2="980" y2="980"/>
+      <line x1="1040" y1="860" x2="1040" y2="980"/>
+      <line x1="1100" y1="860" x2="1100" y2="980"/>
+    </g>
+    <rect x="470" y="860" width="660" height="10" fill="#6b4a2f"/>
+  </g>
+
+  <!-- big jackpot firework directly above the cabinet -->
+  <circle cx="800" cy="330" r="150" fill="url(#burstGlow)"/>
+  <g id="firework-jackpot"></g>
+
+  <!-- ===== the cabinet ===== -->
+  <g id="cabinet" transform="translate(800,0)">
+    <!-- ground shadow -->
+    <ellipse cx="0" cy="972" rx="185" ry="22" fill="#0d1230" opacity="0.35"/>
+
+    <!-- lid -->
+    <rect x="-118" y="500" width="236" height="46" rx="20" fill="url(#cabinetLid)" stroke="#0a3b3c" stroke-width="2"/>
+    <ellipse cx="0" cy="510" rx="48" ry="9" fill="#06201f"/>
+
+    <!-- body -->
+    <path d="M -130,540
+             C -130,520 -110,512 -95,512
+             L 95,512
+             C 110,512 130,520 130,540
+             L 118,900
+             C 116,935 70,955 0,955
+             C -70,955 -116,935 -118,900
+             Z"
+          fill="url(#cabinetBody)" stroke="#0a3b3c" stroke-width="3"/>
+
+    <!-- ridge lines for a metal-can texture -->
+    <g stroke="#0a4344" stroke-opacity="0.35" stroke-width="2">
+      <path d="M -128,600 C -60,610 60,610 128,598" fill="none"/>
+      <path d="M -125,680 C -58,692 58,692 125,678" fill="none"/>
+      <path d="M -122,760 C -55,772 55,772 122,758" fill="none"/>
+    </g>
+
+    <!-- recycle emblem -->
+    <text x="0" y="618" text-anchor="middle" font-size="54" fill="#eafff9" opacity="0.92">&#9851;</text>
+
+    <!-- screen -->
+    <rect x="-92" y="660" width="184" height="86" rx="10" fill="#06120c" stroke="#0a4344" stroke-width="3"/>
+    <text x="-78" y="690" font-size="15" letter-spacing="2" fill="#3ddbd9">WEIGHT</text>
+    <text x="-78" y="722" font-size="30" font-weight="800" fill="#5dffb1">900<tspan font-size="14" fill="#2c8f66"> g</tspan></text>
+    <text x="14" y="690" font-size="15" letter-spacing="2" fill="#ffb15c">PAYOUT</text>
+    <text x="14" y="722" font-size="30" font-weight="800" fill="#ffcf4d">6<tspan font-size="14" fill="#b5781f"> 枚</tspan></text>
+
+    <!-- payout chute opening -->
+    <rect x="-30" y="860" width="60" height="14" rx="6" fill="#06120c"/>
+
+    <!-- tray with spilled medals -->
+    <g>
+      <path d="M -150,900 Q 0,940 150,900 L 160,955 Q 0,995 -160,955 Z" fill="#0c2a2a" stroke="#0a3b3c" stroke-width="3"/>
+      <ellipse cx="-70" cy="925" rx="16" ry="10" fill="url(#medalShine)"/>
+      <ellipse cx="-20" cy="935" rx="17" ry="11" fill="url(#medalShine)"/>
+      <ellipse cx="35" cy="928" rx="16" ry="10" fill="url(#medalShine)"/>
+      <ellipse cx="85" cy="918" rx="15" ry="9" fill="url(#medalShine)"/>
+      <ellipse cx="0" cy="912" rx="17" ry="10" fill="url(#medalShine)"/>
+    </g>
+  </g>
+
+  <!-- medal arc trail: slot -> tray, hugging the outer right edge of the bin -->
+  <path id="arcTrail" d="M 800,505 C 950,520 970,650 940,870" fill="none" stroke="#ffcf4d" stroke-opacity="0.35" stroke-width="4" stroke-dasharray="2 14" stroke-linecap="round"/>
+  <g fill="url(#medalShine)">
+    <circle cx="928" cy="580" r="12"/>
+    <circle cx="948" cy="690" r="13"/>
+    <circle cx="935" cy="800" r="14"/>
+  </g>
+  <!-- impact ring where a medal just landed, right in the medal pile -->
+  <g stroke="#ffcf4d" fill="none" opacity="0.8">
+    <circle cx="900" cy="905" r="20" stroke-width="4"/>
+    <circle cx="900" cy="905" r="38" stroke-width="2" opacity="0.5"/>
+  </g>
+
+  <!-- a visitor tossing a trash bag toward the slot -->
+  <g id="visitor" transform="translate(560,760)">
+    <ellipse cx="0" cy="205" rx="46" ry="10" fill="#0d1230" opacity="0.3"/>
+    <!-- legs -->
+    <path d="M-14,120 L-22,205 M14,120 L20,205" stroke="#10142a" stroke-width="14" stroke-linecap="round"/>
+    <!-- body -->
+    <path d="M0,40 C-30,40 -34,90 -26,130 L26,130 C34,90 30,40 0,40 Z" fill="#10142a"/>
+    <!-- head -->
+    <circle cx="0" cy="14" r="20" fill="#10142a"/>
+    <!-- throwing arm -->
+    <path d="M-24,60 C-56,44 -78,10 -96,-14" stroke="#10142a" stroke-width="13" stroke-linecap="round" fill="none"/>
+    <!-- trash bag mid-air -->
+    <ellipse cx="-118" cy="-34" rx="20" ry="24" fill="#3ddbd9" opacity="0.85"/>
+    <path d="M-140,-40 Q-118,-70 -96,-40" stroke="#3ddbd9" stroke-width="4" fill="none" opacity="0.6" stroke-dasharray="1 10" stroke-linecap="round"/>
+    <!-- other arm -->
+    <path d="M24,60 C40,72 44,96 40,118" stroke="#10142a" stroke-width="13" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- neon sign on poles -->
+  <g id="sign">
+    <line x1="620" y1="240" x2="620" y2="120" stroke="#101a30" stroke-width="10"/>
+    <line x1="980" y1="240" x2="980" y2="120" stroke="#101a30" stroke-width="10"/>
+    <rect x="560" y="40" width="480" height="110" rx="16" fill="#0e1530" stroke="#3ddbd9" stroke-width="3"/>
+    <text x="800" y="98" text-anchor="middle" font-size="46" font-weight="900" letter-spacing="2"
+          fill="#fef6e4"
+          style="text-shadow:0 0 18px rgba(61,219,217,0.9), 0 2px 0 #ff4f9a, 0 4px 10px rgba(0,0,0,0.6);">ゴミ箱アーケード</text>
+    <text x="800" y="128" text-anchor="middle" font-size="16" letter-spacing="6" fill="#ff9dc4">BEACH MEDAL GAME</text>
+  </g>
+
+</svg>
+</div>
+
+<script>
+(function () {
+  var NS = "http://www.w3.org/2000/svg";
+
+  function burst(groupId, cx, cy, count, radius, colors, big) {
+    var g = document.getElementById(groupId);
+    for (var i = 0; i < count; i++) {
+      var angle = (Math.PI * 2 * i) / count + (big ? 0.15 : 0.3);
+      var len = radius * (0.55 + Math.random() * 0.45);
+      var x2 = cx + Math.cos(angle) * len;
+      var y2 = cy + Math.sin(angle) * len;
+      var line = document.createElementNS(NS, "line");
+      line.setAttribute("x1", cx);
+      line.setAttribute("y1", cy);
+      line.setAttribute("x2", x2);
+      line.setAttribute("y2", y2);
+      line.setAttribute("stroke", colors[i % colors.length]);
+      line.setAttribute("stroke-width", big ? 3 : 2);
+      line.setAttribute("stroke-linecap", "round");
+      line.setAttribute("opacity", 0.9);
+      g.appendChild(line);
+
+      var dot = document.createElementNS(NS, "circle");
+      dot.setAttribute("cx", x2);
+      dot.setAttribute("cy", y2);
+      dot.setAttribute("r", big ? 4.5 : 3);
+      dot.setAttribute("fill", colors[i % colors.length]);
+      g.appendChild(dot);
+    }
+    var core = document.createElementNS(NS, "circle");
+    core.setAttribute("cx", cx);
+    core.setAttribute("cy", cy);
+    core.setAttribute("r", big ? 10 : 6);
+    core.setAttribute("fill", "#fff6da");
+    g.appendChild(core);
+  }
+
+  burst("firework-jackpot", 800, 330, 26, 140, ["#ffcf4d", "#ff9a3d", "#3ddbd9", "#ff4f9a"], true);
+  burst("firework-a", 340, 200, 14, 70, ["#3ddbd9", "#fef6e4"], false);
+  burst("firework-b", 1180, 260, 14, 70, ["#ff4f9a", "#fef6e4"], false);
+
+  // string light bulbs along the swagged wire
+  var bulbsGroup = document.getElementById("bulbs");
+  var pathEl = document.querySelector('path[d^="M40,60"]');
+  var bulbColors = ["#ffcf4d", "#ff4f9a", "#3ddbd9"];
+  var steps = 22;
+  for (var i = 0; i <= steps; i++) {
+    var t = i / steps;
+    var x = 40 + (1560 - 40) * t;
+    var y = 60 + Math.sin(Math.PI * t) * 120;
+    var c = document.createElementNS(NS, "circle");
+    c.setAttribute("cx", x);
+    c.setAttribute("cy", y + 4);
+    c.setAttribute("r", 5);
+    c.setAttribute("fill", bulbColors[i % bulbColors.length]);
+    bulbsGroup.appendChild(c);
+  }
+})();
+</script>
