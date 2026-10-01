@@ -28,6 +28,22 @@ for m,plans,memo in MAPS:
     for lab,a in plans:
         body+=f'<div class="plan"><span class="pl">{lab}</span>'+''.join(f'<div class="li"><span class="who" style="--c:{P[p][0]}">{p}</span>'+' / '.join(one(x) for x in a[p].split(' / '))+'</div>' for p in ORDER)+'</div>'
     cards+=f'<div class="card"><h3>{m}</h3>{body}</div>'
+
+ORD=[('アセント',[('',['ジェット','フェニックス','ソーヴァ','オーメン','キルジョイ'])]),
+ ('ヘイヴン',[('',['ジェット','フェニックス','ソーヴァ','オーメン','キルジョイ'])]),
+ ('スプリット',[('',['ネオン','フェイド','オーメン','セージ','チェンバー']),('もしくは',['ジェット','レイズ','スカイ','オーメン','サイファー'])]),
+ ('ロータス',[('',['ジェット','フェニックス','フェイド','オーメン','サイファー'])]),
+ ('サンセット',[('',['ジェット','フェニックス','ソーヴァ','オーメン','サイファー']),('もしくは',['ネオン','ソーヴァ','オーメン','チェンバー','セージ'])]),
+ ('アビス',[('',['ジェット','フェニックス','ソーヴァ','ハーバー / オーメン','サイファー'])]),
+ ('サミット',[('',['ネオン','ソーヴァ','ハーバー / オーメン','チェンバー','セージ']),('もしくは',['ジェット','フェニックス','ソーヴァ','オーメン / ハーバー','サイファー'])]),
+]
+def slot(a):
+    xs=a.split(' / ')
+    return '<td class="sl">'+'<span class="or">or</span>'.join(f'<div class="pk">{face(x,"big")}<span>{x}</span></div>' for x in xs)+'</td>'
+orows=''
+for m,plans in ORD:
+    for i,(lab,ags) in enumerate(plans):
+        orows+='<tr>'+(f'<td class="map" rowspan="{len(plans)}">{m}</td>' if i==0 else '')+f'<td class="lab">{lab}</td>'+''.join(slot(a) for a in ags)+'</tr>'
 roster=''.join(f'<div class="r" style="--c:{P[p][0]}"><b>{p}</b><span>{" ".join(one(a) for a in P[p][1])}</span></div>' for p in ORDER)
 html=f'''<!doctype html><html lang="ja"><head><meta charset="utf-8"><style>
 @page{{size:A4 landscape;margin:12mm}}
@@ -44,6 +60,10 @@ td.map{{font-weight:bold;font-size:13px;background:#f3f3f3}} td.lab{{font-size:1
 .li{{font-size:12px;margin:1px 0}} .who{{display:inline-block;width:56px;font-size:9.5px;color:#fff;background:var(--c);border-radius:4px;text-align:center;margin-right:6px;padding:1px 0}}
 .m{{font-size:8.5px;color:#666;margin:4px 0 0;border-top:1px dashed #ddd;padding-top:4px}}
 .pb{{page-break-before:always}}
+table.ord{{table-layout:fixed}} table.ord td{{padding:4px 6px}} table.ord td.map{{width:90px}} table.ord td.lab{{width:55px}} td.sl{{white-space:nowrap}}
+.pk{{display:inline-flex;flex-direction:column;align-items:center;font-size:11px;font-weight:bold;vertical-align:middle}}
+img.big{{width:40px;height:40px;border-radius:8px;background:#222;margin-bottom:2px}}
+.or{{display:inline-block;font-size:10px;color:#888;margin:0 5px;vertical-align:middle}}
 img.f{{width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-right:4px;background:#222}}
 .ag{{display:inline-flex;align-items:center;gap:2px;padding:2px 10px 2px 3px !important}}
 .r span{{display:flex;flex-wrap:wrap;gap:6px;margin-top:3px}}
@@ -53,7 +73,7 @@ img.f{{width:24px;height:24px;border-radius:50%;vertical-align:middle;margin-rig
 <h2>担当キャラ</h2><div class="roster">{roster}</div>
 <h2>マップ × プレイヤー表</h2>
 <table><tr><th style="--c:#444">マップ</th><th style="--c:#444">案</th>{th}</tr>{rows}</table><p class="sub" style="margin-top:6px">※スカイはふかみの担当外キャラ</p>
-<div class="pb"></div><h1>マップ別 構成一覧</h1><p class="sub">左の色ラベル＝担当プレイヤー</p>
-<div class="cards">{cards}</div>
+<div class="pb"></div><h1>キャラピック一覧</h1>
+<table class="ord">{orows}</table>
 </body></html>'''
 open('team_comps.html','w').write(html)
